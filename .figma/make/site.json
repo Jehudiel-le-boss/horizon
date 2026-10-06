@@ -1,0 +1,10 @@
+{
+  "description": "Centralize and simplify school fee management by enabling parents to track payments and deadlines while providing admins with comprehensive financial oversight.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
