@@ -11,8 +11,12 @@ import {
   summarizePaymentsByMonth,
   summarizeStudents,
 } from "@/lib/domain/financial-summary"
+
 import { exportCsv } from "@/lib/export-csv"
+
 import { FinanceChart } from "@/components/shared/finance-chart"
+
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 function formatPercent(value: number) {
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
@@ -26,6 +30,7 @@ export default function Reports() {
   const finances = summarizeStudents(students)
 
   const methods = summarizePaymentsByMethod(payments)
+
   const monthlyPayments = summarizePaymentsByMonth(payments)
 
   function exportReport() {
@@ -81,7 +86,7 @@ export default function Reports() {
           </Button>
         }
       />
-      <div className="report-filter">
+      <CustomScrollbar className="report-filter">
         <select aria-label="Année scolaire">
           <option>Année scolaire 2026 - 2027</option>
         </select>
@@ -90,7 +95,7 @@ export default function Reports() {
           {finances.studentCount === 1 ? "" : "s"} mocké
           {finances.studentCount === 1 ? "" : "s"}
         </span>
-      </div>
+      </CustomScrollbar>
       <div className="stats-grid three">
         <StatCard
           icon="money"

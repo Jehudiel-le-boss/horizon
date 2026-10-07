@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Bell, ChevronRight, LogOut, Menu, Moon, Sun, X } from "lucide-react"
 
 import { Icon, Logo, type IconName } from "@/components/shared/ui"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 import { PortalActionsContext, type PortalRole } from "./portal-context"
 
@@ -729,7 +730,8 @@ export default function PortalShell({
       }}
     >
       <div className={`portal ${role}${darkMode ? " theme-dark" : ""}`}>
-        <aside
+        <CustomScrollbar
+          as="aside"
           id="portal-navigation"
           className={mobileOpen ? "open" : ""}
           aria-label="Navigation principale"
@@ -776,7 +778,7 @@ export default function PortalShell({
               <span>Déconnexion</span>
             </button>
           </div>
-        </aside>
+        </CustomScrollbar>
         {mobileOpen && (
           <div className="scrim" onClick={() => setMobileOpen(false)} />
         )}

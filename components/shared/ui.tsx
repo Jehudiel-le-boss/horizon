@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type ReactNode } from "react"
+
 import {
   ArrowRight,
   Banknote,
@@ -32,47 +33,80 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react"
+
 import { mockPayments, type PaymentRecord } from "@/lib/mock-data"
+
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
+
 export type IconName = "arrow" | "bell" | "calendar" | "chart" | "check" | "chevron" | "clock" | "download" | "eye" | "file" | "filter" | "home" | "info" | "logout" | "menu" | "money" | "more" | "people" | "plus" | "receipt" | "school" | "search" | "settings" | "shield" | "spark" | "user" | "wallet" | "x"
 
 const icons: Record<IconName, LucideIcon> = {
   arrow: ArrowRight,
+
   bell: Bell,
+
   calendar: CalendarDays,
+
   chart: ChartNoAxesColumnIncreasing,
+
   check: Check,
+
   chevron: ChevronRight,
+
   clock: Clock3,
+
   download: Download,
+
   eye: Eye,
+
   file: FileText,
+
   filter: Filter,
+
   home: House,
+
   info: Info,
+
   logout: LogOut,
+
   menu: Menu,
+
   money: Banknote,
+
   more: Ellipsis,
+
   people: UsersRound,
+
   plus: Plus,
+
   receipt: Receipt,
+
   school: School,
+
   search: Search,
+
   settings: SettingsGlyph,
+
   shield: ShieldCheck,
+
   spark: Sparkles,
+
   user: UserRound,
+
   wallet: Wallet,
+
   x: X,
 }
 
 type IconProps = {
   name: IconName
+
   size?: number
 }
 
 export function Icon({ name, size = 20 }: IconProps) {
   const LucideIcon = icons[name]
+
   return <LucideIcon className="icon" size={size} aria-hidden="true" />
 }
 
@@ -94,19 +128,31 @@ export function Logo({ compact = false }: { compact?: boolean }) {
 
 export function Button({
   children,
+
   variant = "primary",
+
   icon,
+
   onClick,
+
   type = "button",
+
   disabled = false,
+
   ...buttonProps
 }: {
   children: ReactNode
+
   variant?: "primary" | "secondary" | "ghost" | "danger"
+
   icon?: IconName
+
   onClick?: () => void
+
   type?: "button" | "submit"
+
   disabled?: boolean
+
   "aria-expanded"?: boolean
 }) {
   return (
@@ -125,9 +171,11 @@ export function Button({
 
 export function Badge({
   children,
+
   tone = "success",
 }: {
   children: ReactNode
+
   tone?: "success" | "warning" | "danger" | "info" | "neutral"
 }) {
   return (
@@ -144,13 +192,19 @@ export function Amount({ children }: { children: ReactNode }) {
 
 export function PageIntro({
   eyebrow,
+
   title,
+
   text,
+
   actions,
 }: {
   eyebrow?: string
+
   title: string
+
   text: string
+
   actions?: ReactNode
 }) {
   return (
@@ -169,15 +223,23 @@ export const payments = mockPayments
 
 export function StatCard({
   icon,
+
   label,
+
   value,
+
   note,
+
   tone = "blue",
 }: {
   icon: IconName
+
   label: string
+
   value: string
+
   note?: string
+
   tone?: string
 }) {
   return (
@@ -196,16 +258,21 @@ export function StatCard({
 
 export function PaymentTable({
   compact = false,
+
   onReceipt,
+
   rows = payments,
 }: {
   compact?: boolean
+
   onReceipt?: (payment: PaymentRecord) => void
+
   rows?: PaymentRecord[]
 }) {
   const data = compact ? rows.slice(0, 3) : rows
+
   return (
-    <div className="responsive-table">
+    <CustomScrollbar className="responsive-table">
       <table aria-label="Historique des paiements">
         <thead>
           <tr>
@@ -234,8 +301,11 @@ export function PaymentTable({
                     <span className="person-cell">
                       <i>
                         {r.student
+
                           .split(" ")
+
                           .map((s) => s[0])
+
                           .join("")}
                       </i>
                       <b>{r.student}</b>
@@ -285,25 +355,37 @@ export function PaymentTable({
           )}
         </tbody>
       </table>
-    </div>
+    </CustomScrollbar>
   )
 }
 
 export function TableToolbar({
   placeholder = "Rechercher...",
+
   onSearch,
+
   levels,
+
   statuses,
+
   onLevelChange,
+
   onStatusChange,
+
   onExport,
 }: {
   placeholder?: string
+
   onSearch?: (value: string) => void
+
   levels?: string[]
+
   statuses?: string[]
+
   onLevelChange?: (value: string) => void
+
   onStatusChange?: (value: string) => void
+
   onExport?: () => void
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -311,32 +393,46 @@ export function TableToolbar({
   function exportTable() {
     if (onExport) {
       onExport()
+
       return
     }
+
     const table = document.querySelector(".data-card .responsive-table table")
+
     if (!table) return
+
     const content = Array.from(table.querySelectorAll("tr"))
+
       .map((row) =>
         Array.from(row.querySelectorAll("th, td"))
+
           .map(
             (cell) =>
               `"${(cell.textContent ?? "").trim().replaceAll('"', '""')}"`,
           )
+
           .join(";"),
       )
+
       .join("\r\n")
+
     const url = URL.createObjectURL(
       new Blob(["\uFEFF", content], { type: "text/csv;charset=utf-8" }),
     )
+
     const link = document.createElement("a")
+
     link.href = url
+
     link.download = "export-horizon.csv"
+
     link.click()
+
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
-    <div className="filters">
+    <CustomScrollbar className="filters">
       <div>
         <Icon name="search" size={18} />
         <input
@@ -382,6 +478,6 @@ export function TableToolbar({
       <Button variant="secondary" icon="download" onClick={exportTable}>
         Exporter
       </Button>
-    </div>
+    </CustomScrollbar>
   )
 }

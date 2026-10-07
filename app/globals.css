@@ -192,16 +192,15 @@
 .portal.theme-dark .pagination button.active{background:var(--blue);color:#102039}
 .portal.theme-dark .table-card table,.portal.theme-dark .data-card table{color:var(--ink)}
 .portal,.portal .app-header,.portal .stat-card,.portal .card,.portal .child-card,.portal .schedule-summary,.portal .timeline-card,.portal .notification-list,.portal .receipt-card,.portal .modal,.portal .data-card,.portal .table-card,.portal .profile-summary,.portal .empty-state{transition:background-color 240ms ease,border-color 240ms ease,color 240ms ease,box-shadow 240ms ease}
-.portal aside nav{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .portal aside nav button{position:relative;overflow:hidden;transition:background-color 180ms ease,color 180ms ease,transform 180ms ease}
 .portal aside nav button:before{position:absolute;inset:8px auto 8px 0;width:3px;border-radius:0 4px 4px 0;background:var(--blue);content:"";opacity:0;transform:scaleY(.4);transition:opacity 180ms ease,transform 180ms ease}
 .portal aside nav button.active:before{opacity:1;transform:scaleY(1)}
 .portal aside nav button:hover{transform:translateX(2px)}
 @keyframes portal-nav-item-enter{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:800px){
-  .portal aside{visibility:hidden;overflow:hidden;transform:translateX(-102%);transition:transform 280ms cubic-bezier(.22,1,.36,1),visibility 0s linear 280ms;will-change:transform}
+  .portal aside{visibility:hidden;overflow-x:hidden;overflow-y:auto;transform:translateX(-102%);transition:transform 280ms cubic-bezier(.22,1,.36,1),visibility 0s linear 280ms;will-change:transform}
   .portal aside.open{visibility:visible;transform:translateX(0);transition-delay:0s}
-  .portal aside nav{flex:1;margin:0 -5px;padding:2px 5px 10px}
+  .portal aside nav{margin:0 -5px;padding:2px 5px 10px}
   .portal aside nav button,.sidebar-bottom>button{min-height:48px;padding:13px 14px;font-size:13px}
   .workspace-label{font-size:10px}
   .school-chip b,.school-chip small{font-size:11px}
@@ -237,5 +236,72 @@
   .fee-config{gap:9px}
   .fee-amount-input{width:105px}
   .add-user-row{flex-direction:column}
+}
+
+:root{
+  --scrollbar-track:#edf1f6;
+  --scrollbar-thumb:#bdc8d7;
+  --scrollbar-thumb-hover:#93a3b8;
+}
+
+html,body{
+  scrollbar-width:thin;
+  scrollbar-color:var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.custom-scrollbar,.modal,.modal-layer{
+  scrollbar-width:thin;
+  scrollbar-color:var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar,
+.modal::-webkit-scrollbar,
+.modal-layer::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track,
+.modal::-webkit-scrollbar-track,
+.modal-layer::-webkit-scrollbar-track{
+  background:var(--scrollbar-track);
+  border-radius:999px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.modal::-webkit-scrollbar-thumb,
+.modal-layer::-webkit-scrollbar-thumb{
+  background:var(--scrollbar-thumb);
+  border:2px solid var(--scrollbar-track);
+  border-radius:999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.modal::-webkit-scrollbar-thumb:hover,
+.modal-layer::-webkit-scrollbar-thumb:hover{
+  background:var(--scrollbar-thumb-hover);
+}
+
+.portal aside{
+  --scrollbar-track:#0a204b;
+  --scrollbar-thumb:#29456f;
+  --scrollbar-thumb-hover:#47658f;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+.portal.theme-dark{
+  --scrollbar-track:#111c2d;
+  --scrollbar-thumb:#526783;
+  --scrollbar-thumb-hover:#7188a5;
 }
 @media(max-width:520px){.plan-due-date-list{grid-template-columns:1fr}}

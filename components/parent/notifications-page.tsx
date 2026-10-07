@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button, Icon, PageIntro } from "@/components/shared/ui"
 import { usePortalActions } from "@/components/portal/portal-context"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 export default function Notifications() {
   const {
@@ -27,7 +28,7 @@ export default function Notifications() {
           </Button>
         }
       />
-      <div className="tabs">
+      <CustomScrollbar className="tabs">
         <button
           className={filter === "all" ? "active" : ""}
           onClick={() => setFilter("all")}
@@ -52,7 +53,7 @@ export default function Notifications() {
         >
           Informations
         </button>
-      </div>
+      </CustomScrollbar>
       <section className="notification-list">
         {notes.map((note) => (
           <article className={note.read ? "" : "unread"} key={note.id}>

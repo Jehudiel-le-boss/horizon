@@ -1,6 +1,7 @@
 "use client"
 
 import { Button, Icon, PageIntro } from "@/components/shared/ui"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 import { usePortalActions } from "@/components/portal/portal-context"
 import { mockStudents } from "@/lib/mock-data"
 
@@ -31,7 +32,7 @@ export default function AdminClasses() {
           </Button>
         }
       />
-      <div className="level-summary">
+      <CustomScrollbar className="level-summary">
         <span>
           <b>
             {
@@ -50,7 +51,7 @@ export default function AdminClasses() {
           <b>{850 + addedStudents.length}</b>
           <small>Apprenants</small>
         </span>
-      </div>
+      </CustomScrollbar>
       <div className="level-grid">
         {levelConfig.map(({ name, tone }) => {
           const levelClasses = classes.filter((item) => item.level === name)

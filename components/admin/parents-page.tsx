@@ -9,6 +9,7 @@ import {
   TableToolbar,
 } from "@/components/shared/ui"
 import { usePortalActions } from "@/components/portal/portal-context"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 export default function AdminParents() {
   const { parents, setModal } = usePortalActions()
@@ -39,7 +40,7 @@ export default function AdminParents() {
         onStatusChange={setStatusFilter}
       />
       <section className="card data-card">
-        <div className="responsive-table">
+        <CustomScrollbar className="responsive-table">
           <table>
             <thead>
               <tr>
@@ -111,7 +112,7 @@ export default function AdminParents() {
               )}
             </tbody>
           </table>
-        </div>
+        </CustomScrollbar>
       </section>
     </>
   )

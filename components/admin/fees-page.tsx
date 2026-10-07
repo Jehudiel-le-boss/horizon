@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Amount, Badge, Button, Icon, PageIntro } from "@/components/shared/ui"
 
 import { usePortalActions } from "@/components/portal/portal-context"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 type FeeItem = {
   name: string
@@ -114,7 +115,7 @@ export default function AdminFees() {
           </Button>
         }
       />
-      <div className="config-bar">
+      <CustomScrollbar className="config-bar">
         <select aria-label="Année scolaire" defaultValue="2026 - 2027">
           <option>2026 - 2027</option>
           <option>2025 - 2026</option>
@@ -146,7 +147,7 @@ export default function AdminFees() {
           ))}
         </select>
         <Badge>{editing ? "Brouillon" : "Configuration active"}</Badge>
-      </div>
+      </CustomScrollbar>
       <div className="dashboard-grid">
         <section className="card form-card">
           <div className="card-heading">

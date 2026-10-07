@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+
 import {
   Amount,
   Badge,
@@ -14,10 +15,14 @@ import {
   payments,
   type IconName,
 } from "@/components/shared/ui"
+
 import { usePortalActions } from "@/components/portal/portal-context"
+
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 export default function ChildDetail() {
   const { navigate, setModal } = usePortalActions()
+
   return (
     <>
       <button className="back-row" onClick={() => navigate("children")}>
@@ -32,11 +37,11 @@ export default function ChildDetail() {
         </div>
         <Badge>Situation à jour</Badge>
       </section>
-      <div className="tabs">
+      <CustomScrollbar className="tabs">
         <button className="active">Vue d’ensemble</button>
         <button onClick={() => navigate("schedule")}>Échéancier</button>
         <button onClick={() => navigate("payments")}>Paiements</button>
-      </div>
+      </CustomScrollbar>
       <div className="stats-grid three">
         <StatCard icon="school" label="Montant total" value="450 000 FCFA" />
         <StatCard

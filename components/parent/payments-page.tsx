@@ -11,6 +11,7 @@ import {
 } from "@/components/shared/ui"
 
 import { usePortalActions } from "@/components/portal/portal-context"
+import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
 
 import { exportCsv } from "@/lib/export-csv"
 
@@ -89,7 +90,7 @@ export default function Payments() {
           </Button>
         }
       />
-      <div className="filters">
+      <CustomScrollbar className="filters">
         <div>
           <Icon name="search" size={18} />
           <input
@@ -125,7 +126,7 @@ export default function Payments() {
             <option key={method}>{method}</option>
           ))}
         </select>
-      </div>
+      </CustomScrollbar>
       <section className="card table-card full">
         <div className="card-heading">
           <div>
