@@ -729,7 +729,11 @@ export default function PortalShell({
       }}
     >
       <div className={`portal ${role}${darkMode ? " theme-dark" : ""}`}>
-        <aside className={mobileOpen ? "open" : ""}>
+        <aside
+          id="portal-navigation"
+          className={mobileOpen ? "open" : ""}
+          aria-label="Navigation principale"
+        >
           <div className="sidebar-head">
             <Logo />
             <button
@@ -782,6 +786,8 @@ export default function PortalShell({
               className="menu-btn"
               onClick={() => setMobileOpen(true)}
               aria-label="Ouvrir le menu"
+              aria-expanded={mobileOpen}
+              aria-controls="portal-navigation"
             >
               <Menu className="icon" />
             </button>

@@ -162,6 +162,10 @@
 .portal.theme-dark .theme-toggle:hover,.portal.theme-dark .icon-btn:hover,.portal.theme-dark .notification-button:hover{background:#2a3b54;color:#fff}
 .portal.theme-dark label{color:#c5d2e4}
 .portal.theme-dark input,.portal.theme-dark select,.portal.theme-dark textarea{background:#111c2d;border-color:#35445a;color:var(--ink)}
+.portal.theme-dark{color-scheme:dark}
+.portal:not(.theme-dark){color-scheme:light}
+.portal.theme-dark select option,.portal.theme-dark select optgroup{background:#182437;color:#e7edf6}
+.portal.theme-dark input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.82)}
 .portal.theme-dark input::placeholder,.portal.theme-dark textarea::placeholder{color:#8292a9}
 .portal.theme-dark input:focus,.portal.theme-dark select:focus,.portal.theme-dark textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(131,173,255,.15)}
 .portal.theme-dark .notice-banner{border-color:#2b4567;background:#1a2d48;color:#dce8f8}
@@ -188,13 +192,44 @@
 .portal.theme-dark .pagination button.active{background:var(--blue);color:#102039}
 .portal.theme-dark .table-card table,.portal.theme-dark .data-card table{color:var(--ink)}
 .portal,.portal .app-header,.portal .stat-card,.portal .card,.portal .child-card,.portal .schedule-summary,.portal .timeline-card,.portal .notification-list,.portal .receipt-card,.portal .modal,.portal .data-card,.portal .table-card,.portal .profile-summary,.portal .empty-state{transition:background-color 240ms ease,border-color 240ms ease,color 240ms ease,box-shadow 240ms ease}
+.portal aside nav{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.portal aside nav button{position:relative;overflow:hidden;transition:background-color 180ms ease,color 180ms ease,transform 180ms ease}
+.portal aside nav button:before{position:absolute;inset:8px auto 8px 0;width:3px;border-radius:0 4px 4px 0;background:var(--blue);content:"";opacity:0;transform:scaleY(.4);transition:opacity 180ms ease,transform 180ms ease}
+.portal aside nav button.active:before{opacity:1;transform:scaleY(1)}
+.portal aside nav button:hover{transform:translateX(2px)}
+@keyframes portal-nav-item-enter{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:800px){
+  .portal aside{visibility:hidden;overflow:hidden;transform:translateX(-102%);transition:transform 280ms cubic-bezier(.22,1,.36,1),visibility 0s linear 280ms;will-change:transform}
+  .portal aside.open{visibility:visible;transform:translateX(0);transition-delay:0s}
+  .portal aside nav{flex:1;margin:0 -5px;padding:2px 5px 10px}
+  .portal aside nav button,.sidebar-bottom>button{min-height:48px;padding:13px 14px;font-size:13px}
+  .workspace-label{font-size:10px}
+  .school-chip b,.school-chip small{font-size:11px}
+  .portal aside.open nav button{animation:portal-nav-item-enter 300ms both}
+  .portal aside.open nav button:nth-child(1){animation-delay:30ms}
+  .portal aside.open nav button:nth-child(2){animation-delay:50ms}
+  .portal aside.open nav button:nth-child(3){animation-delay:70ms}
+  .portal aside.open nav button:nth-child(4){animation-delay:90ms}
+  .portal aside.open nav button:nth-child(5){animation-delay:110ms}
+  .portal aside.open nav button:nth-child(6){animation-delay:130ms}
+  .portal aside.open nav button:nth-child(7){animation-delay:150ms}
+  .portal aside.open nav button:nth-child(8){animation-delay:170ms}
+  .portal aside.open nav button:nth-child(9){animation-delay:190ms}
+  .portal aside.open nav button:nth-child(10){animation-delay:210ms}
+  .portal aside.open nav button:nth-child(11){animation-delay:230ms}
+  .scrim{backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+}
+@media(max-width:1100px) and (min-width:801px){
+  .portal aside nav button{justify-content:center}
+  .portal aside nav button:before{inset:8px auto 8px -13px}
+}
 @media(hover:hover) and (pointer:fine){
   .stat-card:hover,.receipt-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(16,35,70,.08)}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   ::view-transition-old(portal-content),::view-transition-new(portal-content){animation-duration:.01ms!important}
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;transition-delay:0s!important}
   .profile-summary>div:last-child span{overflow-wrap:anywhere}
   .filters button.btn-secondary{display:inline-flex}
   .filters .btn-ghost{display:none}
