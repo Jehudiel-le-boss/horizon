@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 
 import { usePathname, useRouter } from "next/navigation"
 
-import { Bell, ChevronRight, LogOut, Menu, X } from "lucide-react"
+import { Bell, ChevronRight, LogOut, Menu, Moon, Sun, X } from "lucide-react"
 
 import { Icon, Logo, type IconName } from "@/components/shared/ui"
 
@@ -94,6 +94,8 @@ type PersistedPaymentPlanRecord = Omit<PaymentPlanRecord, "classNames" | "dueDat
 
 const portalStateKey = "horizon-demo-state-v1"
 
+const portalThemeKey = "horizon-portal-theme"
+
 function getDefaultPaymentPlanDueDate(index: number) {
   return new Date(Date.UTC(2026, 8 + index, 15)).toISOString().slice(0, 10)
 }
@@ -104,23 +106,31 @@ function normalizePaymentPlan(
   const mockPlan = mockPaymentPlans.find(
     (mockPlan) => mockPlan.name === plan.name,
   )
+
   const parsedCount = Number.parseInt(
     plan.installments.match(/\d+/)?.[0] ?? "1",
+
     10,
   )
+
   const installmentCount = Math.min(
     Math.max(Number.isInteger(parsedCount) ? parsedCount : 1, 1),
+
     12,
   )
+
   const savedDueDates = Array.isArray(plan.dueDates) ? plan.dueDates : []
 
   return {
     ...plan,
+
     classNames: Array.isArray(plan.classNames)
       ? plan.classNames
       : (mockPlan?.classNames ?? []),
+
     dueDates: Array.from(
       { length: installmentCount },
+
       (_, index) =>
         savedDueDates[index] ??
         mockPlan?.dueDates[index] ??
@@ -149,6 +159,8 @@ export default function PortalShell({
   const router = useRouter()
 
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const [darkMode, setDarkMode] = useState(false)
 
   const [modal, setModal] = useState<string | null>(null)
 
@@ -182,6 +194,14 @@ export default function PortalShell({
     useState<PaymentPlanRecord[]>(mockPaymentPlans)
 
   const [stateLoaded, setStateLoaded] = useState(false)
+
+  useEffect(() => {
+    try {
+      setDarkMode(window.localStorage.getItem(portalThemeKey) === "dark")
+    } catch (error) {
+      console.error("Impossible de restaurer le thème du portail.", error)
+    }
+  }, [])
 
   useEffect(() => {
     try {
@@ -362,6 +382,21 @@ export default function PortalShell({
     setMobileOpen(false)
   }
 
+  function toggleTheme() {
+    const nextDarkMode = !darkMode
+
+    setDarkMode(nextDarkMode)
+
+    try {
+      window.localStorage.setItem(
+        portalThemeKey,
+        nextDarkMode ? "dark" : "light",
+      )
+    } catch (error) {
+      console.error("Impossible d’enregistrer le thème du portail.", error)
+    }
+  }
+
   function closeModal() {
     if (modalCloseTimer.current !== null) return
 
@@ -482,6 +517,7 @@ export default function PortalShell({
 
           dueDates: Array.from(
             { length: nextCount },
+
             (_, index) =>
               plan.dueDates[index] ?? getDefaultPaymentPlanDueDate(index),
           ),
@@ -692,7 +728,7 @@ export default function PortalShell({
         markNotificationRead,
       }}
     >
-      <div className={`portal ${role}`}>
+      <div className={`portal ${role}${darkMode ? " theme-dark" : ""}`}>
         <aside className={mobileOpen ? "open" : ""}>
           <div className="sidebar-head">
             <Logo />
@@ -754,6 +790,22 @@ export default function PortalShell({
               <h1>{title}</h1>
             </div>
             <div className="header-actions">
+              <button
+                className="theme-toggle"
+                type="button"
+                aria-label={
+                  darkMode ? "Activer le mode clair" : "Activer le mode sombre"
+                }
+                aria-pressed={darkMode}
+                title={darkMode ? "Mode clair" : "Mode sombre"}
+                onClick={toggleTheme}
+              >
+                {darkMode ? (
+                  <Sun key="sun" className="icon" />
+                ) : (
+                  <Moon key="moon" className="icon" />
+                )}
+              </button>
               <button
                 className="notification-button"
                 aria-label="Notifications"
