@@ -13,21 +13,24 @@ import { usePortalActions } from "@/components/portal/portal-context"
 import { exportCsv } from "@/lib/export-csv"
 
 export default function AdminReceipts() {
-  const { payments, setModal } = usePortalActions()
+  const { payments, students, setModal } = usePortalActions()
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
-  const filteredPayments = payments.filter(
-    (payment) =>
-      `${payment.reference} ${payment.student} ${payment.method}`
-        .toLocaleLowerCase("fr")
-        .includes(search.toLocaleLowerCase("fr")) &&
-      (!statusFilter || payment.status === statusFilter),
+  const confirmedPayments = payments.filter(
+    (payment) => payment.status === "Payé",
   )
+  const normalizedSearch = search.toLocaleLowerCase("fr")
+  const filteredPayments = confirmedPayments.filter((payment) => {
+    const student = students.find(
+      (record) => `${record.firstName} ${record.lastName}` === payment.student,
+    )
+    const searchableText = `${payment.reference} ${payment.student} ${student?.parent ?? ""} ${payment.method}`
+    return searchableText.toLocaleLowerCase("fr").includes(normalizedSearch)
+  })
   return (
     <>
       <PageIntro
         title="Reçus"
-        text="Consultez et partagez les reçus générés par la plateforme."
+        text="Consultez les reçus validés et exportez leurs données en CSV."
         actions={
           <Button
             variant="secondary"
@@ -35,7 +38,7 @@ export default function AdminReceipts() {
             onClick={() =>
               exportCsv("recus-horizon.csv", [
                 ["Référence", "Apprenant", "Date", "Mode", "Montant", "Statut"],
-                ...payments.map((payment) => [
+                ...confirmedPayments.map((payment) => [
                   payment.reference,
                   payment.student,
                   payment.date,
@@ -53,8 +56,6 @@ export default function AdminReceipts() {
       <TableToolbar
         placeholder="N° de reçu, apprenant, parent..."
         onSearch={setSearch}
-        statuses={["Payé", "En attente", "Refusé"]}
-        onStatusChange={setStatusFilter}
         onExport={() =>
           exportCsv("recus-horizon.csv", [
             ["Référence", "Apprenant", "Date", "Mode", "Montant", "Statut"],
@@ -93,6 +94,9 @@ export default function AdminReceipts() {
             </div>
             <Amount>{payment.amount}</Amount>
             <div className="receipt-actions">
+              <button onClick={() => setModal(`receipt:${payment.reference}`)}>
+                <Icon name="eye" size={17} /> Voir le reçu
+              </button>
               <button
                 onClick={() =>
                   exportCsv(`${payment.reference}.csv`, [
@@ -115,14 +119,16 @@ export default function AdminReceipts() {
                   ])
                 }
               >
-                <Icon name="eye" size={17} /> Voir
-              </button>
-              <button onClick={() => setModal(`receipt:${payment.reference}`)}>
-                <Icon name="download" size={17} /> Télécharger
+                <Icon name="download" size={17} /> Exporter CSV
               </button>
             </div>
           </article>
         ))}
+        {filteredPayments.length === 0 && (
+          <p className="card empty-table">
+            Aucun reçu validé ne correspond à cette recherche.
+          </p>
+        )}
       </div>
     </>
   )

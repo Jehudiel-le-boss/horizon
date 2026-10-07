@@ -2,24 +2,65 @@
 
 import {
   Amount,
-  Badge,
-  BarChart,
   Button,
   Icon,
   PageIntro,
   PaymentTable,
   StatCard,
-  type IconName,
 } from "@/components/shared/ui"
 import { usePortalActions } from "@/components/portal/portal-context"
 import { exportCsv } from "@/lib/export-csv"
+import { formatXofAmount } from "@/lib/domain/money"
+import {
+  summarizePaymentsByMonth,
+  summarizeStudents,
+} from "@/lib/domain/financial-summary"
+import { FinanceChart } from "@/components/shared/finance-chart"
+
+function formatPercent(value: number) {
+  return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+    value,
+  )
+}
 
 export default function AdminDashboard() {
-  const { navigate, payments } = usePortalActions()
+  const { navigate, payments, students } = usePortalActions()
+  const finances = summarizeStudents(students)
+  const monthlyPayments = summarizePaymentsByMonth(payments)
+  const alerts: {
+    tone: "danger" | "info"
+    icon: "wallet" | "receipt"
+    title: string
+    text: string
+    target: string
+  }[] = []
+
+  if (finances.studentsWithBalance > 0) {
+    alerts.push({
+      tone: "danger",
+      icon: "wallet",
+      title: `${finances.studentsWithBalance} apprenant${
+        finances.studentsWithBalance === 1 ? "" : "s"
+      }`,
+      text: "présentent un solde restant",
+      target: "students",
+    })
+  }
+
+  if (payments.length > 0) {
+    alerts.push({
+      tone: "info",
+      icon: "receipt",
+      title: `${payments.length} paiement${payments.length === 1 ? "" : "s"}`,
+      text: "figure dans l’historique de démonstration",
+      target: "payments",
+    })
+  }
+
   return (
     <>
       <PageIntro
-        eyebrow="Mardi 6 octobre 2026"
+        eyebrow="Données de démonstration"
         title="Bonjour, Yao"
         text="Voici l’état du recouvrement de votre établissement."
         actions={
@@ -60,103 +101,65 @@ export default function AdminDashboard() {
         <StatCard
           icon="people"
           label="Nombre d’apprenants"
-          value="850"
-          note="+24 cette année"
+          value={String(finances.studentCount)}
+          note="Dossiers de démonstration"
         />
         <StatCard
           icon="money"
           label="Total attendu"
-          value="425 M FCFA"
+          value={`${formatXofAmount(finances.expected)} FCFA`}
           note="Année 2026 - 2027"
           tone="purple"
         />
         <StatCard
           icon="check"
           label="Total encaissé"
-          value="320 M FCFA"
-          note="+12,4 M ce mois"
+          value={`${formatXofAmount(finances.collected)} FCFA`}
+          note="Calculé depuis les dossiers apprenants"
           tone="green"
         />
         <StatCard
           icon="wallet"
           label="Reste à recouvrer"
-          value="105 M FCFA"
-          note="24,7% du total"
+          value={`${formatXofAmount(finances.outstanding)} FCFA`}
+          note={`${formatPercent(finances.expected === 0 ? 0 : (finances.outstanding / finances.expected) * 100)}% du total`}
           tone="orange"
         />
         <article className="rate-card">
           <div>
             <small>Taux de recouvrement</small>
-            <Amount>75,3%</Amount>
-            <p>
-              <b>+ 4,2%</b> par rapport au mois dernier
-            </p>
+            <Amount>{formatPercent(finances.collectionRate)}%</Amount>
+            <p>Calculé sur les soldes des apprenants</p>
           </div>
-          <div className="ring large-ring">75%</div>
+          <div className="ring large-ring">
+            {formatPercent(finances.collectionRate)}%
+          </div>
         </article>
       </div>
       <div className="admin-main-grid">
         <section className="card chart-card">
           <div className="card-heading">
             <div>
-              <span>Aperçu financier</span>
-              <h3>Évolution du recouvrement</h3>
+              <span>Historique des règlements</span>
+              <h3>Encaissements par mois</h3>
             </div>
-            <select>
-              <option>6 derniers mois</option>
-            </select>
           </div>
-          <div className="legend">
-            <span>
-              <i className="blue-dot" /> Attendu
-            </span>
-            <span>
-              <i className="green-dot" /> Encaissé
-            </span>
-          </div>
-          <BarChart />
+          <p>
+            Montants des paiements confirmés présents dans les données mockées.
+          </p>
+          <FinanceChart data={monthlyPayments} height={250} />
         </section>
         <section className="card alerts">
           <div className="card-heading">
             <div>
-              <span>À traiter</span>
-              <h3>Situations nécessitant votre attention</h3>
+              <span>Vue d’ensemble</span>
+              <h3>Soldes et historique</h3>
             </div>
-            <span className="count red">94</span>
           </div>
-          {[
-            [
-              "danger",
-              "clock",
-              "48 apprenants",
-              "ont une échéance en retard",
-              "students",
-            ],
-            [
-              "warning",
-              "receipt",
-              "23 paiements",
-              "doivent être vérifiés",
-              "payments",
-            ],
-            [
-              "info",
-              "calendar",
-              "15 échéances",
-              "arrivent cette semaine",
-              "schedule",
-            ],
-            [
-              "neutral",
-              "wallet",
-              "8 comptes",
-              "présentent un solde important",
-              "students",
-            ],
-          ].map(([tone, icon, title, text, target]) => (
+          {alerts.map(({ tone, icon, title, text, target }) => (
             <div className="alert-row" key={title}>
               <span className={`mini-icon ${tone}`}>
-                <Icon name={icon as IconName} />
+                <Icon name={icon} />
               </span>
               <div>
                 <b>{title}</b>
@@ -167,20 +170,23 @@ export default function AdminDashboard() {
               </button>
             </div>
           ))}
+          {alerts.length === 0 && (
+            <p>Aucune situation à signaler dans les données disponibles.</p>
+          )}
         </section>
       </div>
       <div className="dashboard-grid lower">
         <section className="card table-card">
           <div className="card-heading">
             <div>
-              <span>Activité en temps réel</span>
-              <h3>Derniers paiements reçus</h3>
+              <span>Historique mocké</span>
+              <h3>Paiements enregistrés</h3>
             </div>
             <button onClick={() => navigate("payments")}>
               Voir tout <Icon name="arrow" size={16} />
             </button>
           </div>
-          <PaymentTable compact />
+          <PaymentTable compact rows={payments} />
         </section>
         <section className="card collection">
           <div className="card-heading">
@@ -189,20 +195,16 @@ export default function AdminDashboard() {
               <h3>Recouvrement par niveau</h3>
             </div>
           </div>
-          {[
-            ["Maternelle", "82", "41,2 M"],
-            ["Primaire", "76", "138,4 M"],
-            ["Secondaire", "69", "140,4 M"],
-          ].map(([label, val, amount]) => (
-            <div className="collection-row" key={label}>
+          {finances.levels.map((level) => (
+            <div className="collection-row" key={level.level}>
               <div>
-                <b>{label}</b>
-                <span>{amount} FCFA</span>
+                <b>{level.level}</b>
+                <span>{formatXofAmount(level.collected)} FCFA</span>
               </div>
               <div className="progress">
-                <span style={{ width: `${val}%` }} />
+                <span style={{ width: `${level.collectionRate}%` }} />
               </div>
-              <strong>{val}%</strong>
+              <strong>{formatPercent(level.collectionRate)}%</strong>
             </div>
           ))}
         </section>

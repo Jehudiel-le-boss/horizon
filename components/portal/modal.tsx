@@ -5,11 +5,17 @@ import { useEffect, useState, type FormEvent } from "react"
 import { Badge, Button, Icon, Logo } from "@/components/shared/ui"
 
 import { usePortalActions } from "@/components/portal/portal-context"
+import { formatXofAmount, parseXofDisplayAmount } from "@/lib/domain/money"
+import {
+  classInputSchema,
+  createManualPaymentSchema,
+  parentInputSchema,
+  paymentPlanInputSchema,
+  studentInputSchema,
+} from "@/lib/domain/validation"
 
-function formatAmount(value: FormDataEntryValue | null) {
-  const amount = Number(String(value ?? "").replace(/\D/g, ""))
-
-  return new Intl.NumberFormat("fr-FR").format(amount)
+function getFirstValidationMessage(error: { issues: { message: string }[] }) {
+  return error.issues[0]?.message ?? "Vérifiez les informations saisies."
 }
 
 export default function Modal({
@@ -92,13 +98,87 @@ export default function Modal({
   const [receiptError, setReceiptError] = useState("")
 
   useEffect(() => {
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    const previousBodyOverflow = document.body.style.overflow
+    const dialog = document.querySelector<HTMLElement>(
+      ".modal-layer [role='dialog']",
+    )
+
+    document.body.style.overflow = "hidden"
+
+    if (dialog) {
+      dialog.tabIndex = -1
+      const formTarget = dialog.querySelector<HTMLElement>(
+        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
+      )
+      const fallbackTarget = dialog.querySelector<HTMLElement>(
+        "button:not([disabled])",
+      )
+      ;(formTarget ?? fallbackTarget ?? dialog).focus()
+    }
+
+    function getFocusableElements() {
+      return Array.from(
+        dialog?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter(
+        (element) =>
+          element.getAttribute("aria-hidden") !== "true" &&
+          element.getClientRects().length > 0,
+      )
+    }
+
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") close()
+      if (event.key === "Escape") {
+        event.preventDefault()
+        close()
+        return
+      }
+
+      if (event.key !== "Tab" || !dialog) return
+
+      const focusableElements = getFocusableElements()
+      if (focusableElements.length === 0) {
+        event.preventDefault()
+        dialog.focus()
+        return
+      }
+
+      const first = focusableElements[0]
+      const last = focusableElements[focusableElements.length - 1]
+
+      if (
+        event.shiftKey &&
+        (document.activeElement === first ||
+          !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     document.addEventListener("keydown", onKeyDown)
 
-    return () => document.removeEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("keydown", onKeyDown)
+      document.body.style.overflow = previousBodyOverflow
+      if (
+        previouslyFocused &&
+        previouslyFocused !== document.body &&
+        previouslyFocused.isConnected
+      ) {
+        window.requestAnimationFrame(() => {
+          if (previouslyFocused.isConnected) previouslyFocused.focus()
+        })
+      }
+    }
   }, [close])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -111,25 +191,38 @@ export default function Modal({
     const get = (name: string) => String(data.get(name) ?? "").trim()
 
     if (action === "payment") {
+      const student = students.find((item) => item.id === get("student"))
+
+      if (!student) {
+        setFormError("Sélectionnez un apprenant valide.")
+
+        return
+      }
+
+      const paymentResult = createManualPaymentSchema(
+        parseXofDisplayAmount(student.remaining),
+      ).safeParse({
+        studentId: get("student"),
+        amount: get("amount"),
+        date: get("date"),
+        method: get("method"),
+        reference: get("reference"),
+        comment: get("comment"),
+      })
+
+      if (!paymentResult.success) {
+        setFormError(getFirstValidationMessage(paymentResult.error))
+
+        return
+      }
+
       if (payments.some((payment) => payment.reference === get("reference"))) {
         setFormError("Cette référence de paiement existe déjà.")
 
         return
       }
 
-      const student = students.find((item) => item.id === get("student"))
-
-      const paymentAmount = Number(
-        String(data.get("amount") ?? "").replace(/\D/g, ""),
-      )
-
-      const balance = Number(student?.remaining.replace(/\D/g, "") ?? "0")
-
-      if (student && paymentAmount > balance) {
-        setFormError("Le montant dépasse le solde restant de cet apprenant.")
-
-        return
-      }
+      const payment = paymentResult.data
 
       const date = new Intl.DateTimeFormat("fr-FR", {
         day: "2-digit",
@@ -141,19 +234,20 @@ export default function Modal({
 
       createPayment({
         date,
+        dateISO: payment.date,
 
-        student: student
-          ? `${student.firstName} ${student.lastName}`
-          : get("student"),
+        student: `${student.firstName} ${student.lastName}`,
 
-        reference: get("reference"),
+        reference: payment.reference,
 
-        amount: `${formatAmount(data.get("amount"))} FCFA`,
+        amount: `${formatXofAmount(payment.amount)} FCFA`,
 
-        method: get("method"),
+        method: payment.method,
+
+        note: payment.comment,
       })
 
-      setSuccessReceipt(get("reference"))
+      setSuccessReceipt(payment.reference)
 
       setSuccess(
         "Le paiement a été enregistré dans les données de démonstration.",
@@ -163,20 +257,41 @@ export default function Modal({
     }
 
     if (action === "student") {
-      const total = formatAmount(data.get("total"))
+      const studentResult = studentInputSchema.safeParse({
+        firstName: get("firstName"),
+        lastName: get("lastName"),
+        className: get("className"),
+        level: get("level"),
+        parent: get("parent"),
+        total: get("total"),
+      })
+
+      if (!studentResult.success) {
+        setFormError(getFirstValidationMessage(studentResult.error))
+
+        return
+      }
+
+      const studentInput = studentResult.data
+
+      if (!parents.some((parent) => parent.name === studentInput.parent)) {
+        setFormError("Sélectionnez un parent existant.")
+
+        return
+      }
 
       createStudent({
-        firstName: get("firstName"),
+        firstName: studentInput.firstName,
 
-        lastName: get("lastName"),
+        lastName: studentInput.lastName,
 
-        className: get("className"),
+        className: studentInput.className,
 
-        level: get("level"),
+        level: studentInput.level,
 
-        parent: get("parent"),
+        parent: studentInput.parent,
 
-        total,
+        total: formatXofAmount(studentInput.total),
       })
 
       setSuccess("Le dossier apprenant a été ajouté à la liste mockée.")
@@ -185,11 +300,24 @@ export default function Modal({
     }
 
     if (action === "parent") {
+      const parentResult = parentInputSchema.safeParse({
+        firstName: get("firstName"),
+        lastName: get("lastName"),
+        phone: get("phone"),
+        email: get("email"),
+      })
+
+      if (!parentResult.success) {
+        setFormError(getFirstValidationMessage(parentResult.error))
+
+        return
+      }
+
+      const parentInput = parentResult.data
+
       if (
         parents.some(
-          (parent) =>
-            parent.email.toLocaleLowerCase() ===
-            get("email").toLocaleLowerCase(),
+          (parent) => parent.email.toLocaleLowerCase() === parentInput.email,
         )
       ) {
         setFormError("Un parent utilise déjà cette adresse e-mail.")
@@ -198,11 +326,11 @@ export default function Modal({
       }
 
       createParent({
-        name: `${get("firstName")} ${get("lastName")}`.trim(),
+        name: `${parentInput.firstName} ${parentInput.lastName}`,
 
-        phone: get("phone"),
+        phone: parentInput.phone,
 
-        email: get("email"),
+        email: parentInput.email,
       })
 
       setSuccess("Le parent a été ajouté à la liste mockée.")
@@ -211,21 +339,18 @@ export default function Modal({
     }
 
     if (action === "class" || action.startsWith("class-")) {
-      const name = get("name")
+      const classResult = classInputSchema.safeParse({
+        name: get("name"),
+        level: get("level"),
+      })
 
-      const levelValue = get("level")
-
-      if (
-        levelValue !== "Maternelle" &&
-        levelValue !== "Primaire" &&
-        levelValue !== "Secondaire"
-      ) {
-        setClassError("Sélectionnez un niveau valide.")
+      if (!classResult.success) {
+        setClassError(getFirstValidationMessage(classResult.error))
 
         return
       }
 
-      const level = levelValue
+      const { name, level } = classResult.data
 
       if (
         classes.some(
@@ -259,12 +384,25 @@ export default function Modal({
         return
       }
 
-      const record = {
+      const planResult = paymentPlanInputSchema.safeParse({
         name: planName,
+        amount: get("amount"),
+        installments: get("installments"),
+      })
 
-        amount: `${formatAmount(data.get("amount"))} FCFA`,
+      if (!planResult.success) {
+        setFormError(getFirstValidationMessage(planResult.error))
 
-        installments: `${get("installments")} tranches`,
+        return
+      }
+
+      const planInput = planResult.data
+      const record = {
+        name: planInput.name,
+
+        amount: `${formatXofAmount(planInput.amount)} FCFA`,
+
+        installments: `${planInput.installments} tranches`,
 
         students:
           paymentPlans.find((plan) => plan.name === value)?.students ??
@@ -376,7 +514,7 @@ export default function Modal({
     const parent =
       student && parents.find((item) => item.name === student.parent)
 
-    if (!payment) {
+    if (!payment || payment.status !== "Payé") {
       return (
         <div
           className="modal-layer"
@@ -393,9 +531,13 @@ export default function Modal({
             <button className="modal-close" onClick={close} aria-label="Fermer">
               <Icon name="x" />
             </button>
-            <h2 id="receipt-error-title">Reçu introuvable</h2>
+            <h2 id="receipt-error-title">
+              {payment ? "Reçu non disponible" : "Reçu introuvable"}
+            </h2>
             <p>
-              La référence demandée n’est pas présente dans les données mockées.
+              {payment
+                ? "Un reçu est disponible uniquement après confirmation du paiement."
+                : "La référence demandée n’est pas présente dans les données mockées."}
             </p>
             <div className="modal-actions">
               <Button onClick={close}>Fermer</Button>
@@ -458,8 +600,8 @@ export default function Modal({
                   <small>Solde avant paiement</small>
                   <b>
                     {new Intl.NumberFormat("fr-FR").format(
-                      Number(student.remaining.replace(/\D/g, "")) +
-                        Number(payment.amount.replace(/\D/g, "")),
+                      parseXofDisplayAmount(student.remaining) +
+                        parseXofDisplayAmount(payment.amount),
                     )}{" "}
                     FCFA
                   </b>
@@ -652,6 +794,9 @@ export default function Modal({
   const paymentStudentOptions = matchingStudents.length
     ? matchingStudents
     : students
+  const selectedPaymentStudentRecord = students.find(
+    (student) => student.id === selectedPaymentStudent,
+  )
 
   const initialLevel = action.startsWith("class:") ? value : "Primaire"
 
@@ -754,13 +899,10 @@ export default function Modal({
                     type="number"
                     min="1"
                     max={
-                      selectedPaymentStudent
-                        ? students
-                            .find(
-                              (student) =>
-                                student.id === selectedPaymentStudent,
-                            )
-                            ?.remaining.replace(/\D/g, "")
+                      selectedPaymentStudentRecord
+                        ? parseXofDisplayAmount(
+                            selectedPaymentStudentRecord.remaining,
+                          )
                         : undefined
                     }
                     required
@@ -878,7 +1020,9 @@ export default function Modal({
                     min="1"
                     required
                     defaultValue={
-                      planToEdit?.amount.replace(/\D/g, "") ?? "450000"
+                      planToEdit
+                        ? parseXofDisplayAmount(planToEdit.amount)
+                        : "450000"
                     }
                   />
                 </label>

@@ -24,6 +24,7 @@ import {
   type PaymentRecord,
   type StudentRecord,
 } from "@/lib/mock-data"
+import { formatXofAmount, parseXofDisplayAmount } from "@/lib/domain/money"
 
 import Modal from "./modal"
 
@@ -229,16 +230,14 @@ export default function PortalShell({
       },
       ...current,
     ])
-    const amount = Number(student.total.replace(/\D/g, ""))
+    const amount = parseXofDisplayAmount(student.total)
     setParents((current) =>
       current.map((parent) =>
         parent.name === student.parent
           ? {
               ...parent,
               children: String(Number.parseInt(parent.children, 10) + 1),
-              due: new Intl.NumberFormat("fr-FR").format(
-                Number(parent.due.replace(/\D/g, "")) + amount,
-              ),
+              due: formatXofAmount(parseXofDisplayAmount(parent.due) + amount),
             }
           : parent,
       ),
@@ -297,7 +296,7 @@ export default function PortalShell({
 
   function createPayment(payment: Omit<PaymentRecord, "status">) {
     setPayments((current) => [{ ...payment, status: "Payé" }, ...current])
-    const amount = Number(payment.amount.replace(/\D/g, ""))
+    const amount = parseXofDisplayAmount(payment.amount)
     const student = students.find(
       (item) => `${item.firstName} ${item.lastName}` === payment.student,
     )
@@ -305,13 +304,13 @@ export default function PortalShell({
       current.map((item) => {
         if (`${item.firstName} ${item.lastName}` !== payment.student)
           return item
-        const paid = Number(item.paid.replace(/\D/g, "")) + amount
-        const total = Number(item.total.replace(/\D/g, ""))
+        const paid = parseXofDisplayAmount(item.paid) + amount
+        const total = parseXofDisplayAmount(item.total)
         const remaining = Math.max(total - paid, 0)
         return {
           ...item,
-          paid: new Intl.NumberFormat("fr-FR").format(paid),
-          remaining: new Intl.NumberFormat("fr-FR").format(remaining),
+          paid: formatXofAmount(paid),
+          remaining: formatXofAmount(remaining),
           status: remaining === 0 ? "Soldé" : "À jour",
         }
       }),
@@ -322,8 +321,8 @@ export default function PortalShell({
           parent.name === student.parent
             ? {
                 ...parent,
-                paid: new Intl.NumberFormat("fr-FR").format(
-                  Number(parent.paid.replace(/\D/g, "")) + amount,
+                paid: formatXofAmount(
+                  parseXofDisplayAmount(parent.paid) + amount,
                 ),
               }
             : parent,
@@ -519,7 +518,9 @@ export default function PortalShell({
               </div>
             </div>
           </header>
-          <main className="app-content">{children}</main>
+          <main key={pathname} className="app-content">
+            {children}
+          </main>
         </div>
         {modal && <Modal type={modal} close={() => setModal(null)} />}
       </div>

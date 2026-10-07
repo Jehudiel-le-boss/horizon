@@ -4,7 +4,6 @@ import { useState } from "react"
 import {
   Amount,
   Badge,
-  BarChart,
   Button,
   Icon,
   Logo,

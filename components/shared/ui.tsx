@@ -66,13 +66,12 @@ const icons: Record<IconName, LucideIcon> = {
   x: X,
 }
 
-export function Icon({
-  name,
-  size = 20,
-}: {
+type IconProps = {
   name: IconName
   size?: number
-}) {
+}
+
+export function Icon({ name, size = 20 }: IconProps) {
   const LucideIcon = icons[name]
   return <LucideIcon className="icon" size={size} aria-hidden="true" />
 }
@@ -100,6 +99,7 @@ export function Button({
   onClick,
   type = "button",
   disabled = false,
+  ...buttonProps
 }: {
   children: ReactNode
   variant?: "primary" | "secondary" | "ghost" | "danger"
@@ -107,6 +107,7 @@ export function Button({
   onClick?: () => void
   type?: "button" | "submit"
   disabled?: boolean
+  "aria-expanded"?: boolean
 }) {
   return (
     <button
@@ -114,6 +115,7 @@ export function Button({
       className={`btn btn-${variant}`}
       onClick={onClick}
       disabled={disabled}
+      {...buttonProps}
     >
       {icon && <Icon name={icon} size={18} />}
       <span>{children}</span>
@@ -204,92 +206,85 @@ export function PaymentTable({
   const data = compact ? rows.slice(0, 3) : rows
   return (
     <div className="responsive-table">
-      <table>
+      <table aria-label="Historique des paiements">
         <thead>
           <tr>
-            <th>Date</th>
-            {!compact && <th>Enfant</th>}
-            <th>Référence</th>
-            <th>Montant</th>
-            <th>Mode</th>
-            <th>Statut</th>
-            {!compact && <th />}
+            <th scope="col">Date</th>
+            {!compact && <th scope="col">Enfant</th>}
+            <th scope="col">Référence</th>
+            <th scope="col">Montant</th>
+            <th scope="col">Mode</th>
+            <th scope="col">Statut</th>
+            {!compact && <th scope="col" />}
           </tr>
         </thead>
         <tbody>
-          {data.map((r) => (
-            <tr key={r.reference}>
-              <td>{r.date}</td>
-              {!compact && (
-                <td>
-                  <span className="person-cell">
-                    <i>
-                      {r.student
-                        .split(" ")
-                        .map((s) => s[0])
-                        .join("")}
-                    </i>
-                    <b>{r.student}</b>
-                  </span>
-                </td>
-              )}
-              <td>
-                <code>{r.reference}</code>
+          {data.length === 0 ? (
+            <tr>
+              <td colSpan={compact ? 5 : 7} className="empty-table">
+                Aucun paiement à afficher.
               </td>
-              <td>
-                <b>{r.amount}</b>
-              </td>
-              <td>{r.method}</td>
-              <td>
-                <Badge>{r.status}</Badge>
-              </td>
-              {!compact && (
-                <td>
-                  <button
-                    className="table-action"
-                    onClick={() => onReceipt?.(r)}
-                  >
-                    <Icon name="eye" size={17} /> Voir le reçu
-                  </button>
-                </td>
-              )}
             </tr>
-          ))}
+          ) : (
+            data.map((r) => (
+              <tr key={r.reference}>
+                <td>{r.date}</td>
+                {!compact && (
+                  <td>
+                    <span className="person-cell">
+                      <i>
+                        {r.student
+                          .split(" ")
+                          .map((s) => s[0])
+                          .join("")}
+                      </i>
+                      <b>{r.student}</b>
+                    </span>
+                  </td>
+                )}
+                <td>
+                  <code>{r.reference}</code>
+                </td>
+                <td>
+                  <b>{r.amount}</b>
+                </td>
+                <td>{r.method}</td>
+                <td>
+                  <Badge
+                    tone={
+                      r.status === "Payé"
+                        ? "success"
+                        : r.status === "En attente"
+                          ? "warning"
+                          : r.status === "Échoué"
+                            ? "danger"
+                            : "neutral"
+                    }
+                  >
+                    {r.status}
+                  </Badge>
+                </td>
+                {!compact && (
+                  <td>
+                    {r.status === "Payé" ? (
+                      <button
+                        className="table-action"
+                        onClick={() => onReceipt?.(r)}
+                      >
+                        <Icon name="eye" size={17} /> Voir le reçu
+                      </button>
+                    ) : (
+                      <span className="table-action-unavailable">
+                        Après confirmation
+                      </span>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
-    </div>
-  )
-}
-
-export function BarChart() {
-  const data = [
-    [52, 36],
-    [61, 41],
-    [72, 53],
-    [84, 67],
-    [76, 59],
-    [91, 73],
-  ]
-  return (
-    <div className="chart">
-      <div className="y-axis">
-        <span>100 M</span>
-        <span>75 M</span>
-        <span>50 M</span>
-        <span>25 M</span>
-        <span>0</span>
-      </div>
-      <div className="bars">
-        {data.map(([a, b], i) => (
-          <div className="bar-group" key={i}>
-            <div>
-              <i style={{ height: `${a}%` }} />
-              <b style={{ height: `${b}%` }} />
-            </div>
-            <span>{["Juin", "Juil.", "Août", "Sept.", "Oct.", "Nov."][i]}</span>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -298,7 +293,7 @@ export function TableToolbar({
   placeholder = "Rechercher...",
   onSearch,
   levels,
-  statuses = ["Payé", "En retard", "À jour", "À suivre", "Soldé"],
+  statuses,
   onLevelChange,
   onStatusChange,
   onExport,
@@ -345,6 +340,7 @@ export function TableToolbar({
       <div>
         <Icon name="search" size={18} />
         <input
+          aria-label={placeholder}
           placeholder={placeholder}
           onChange={(event) => onSearch?.(event.target.value)}
         />
@@ -360,24 +356,29 @@ export function TableToolbar({
           ))}
         </select>
       )}
-      {showAdvanced && (
-        <select
-          aria-label="Filtrer par statut"
-          onChange={(event) => onStatusChange?.(event.target.value)}
-        >
-          <option value="">Tous les statuts</option>
-          {statuses.map((status) => (
-            <option key={status}>{status}</option>
-          ))}
-        </select>
+      {statuses && statuses.length > 0 && (
+        <>
+          <select
+            id="table-status-filter"
+            aria-label="Filtrer par statut"
+            hidden={!showAdvanced}
+            onChange={(event) => onStatusChange?.(event.target.value)}
+          >
+            <option value="">Tous les statuts</option>
+            {statuses.map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </select>
+          <Button
+            variant="ghost"
+            icon="filter"
+            onClick={() => setShowAdvanced((current) => !current)}
+            aria-expanded={showAdvanced}
+          >
+            {showAdvanced ? "Masquer les filtres" : "Plus de filtres"}
+          </Button>
+        </>
       )}
-      <Button
-        variant="ghost"
-        icon="filter"
-        onClick={() => setShowAdvanced((current) => !current)}
-      >
-        {showAdvanced ? "Masquer les filtres" : "Plus de filtres"}
-      </Button>
       <Button variant="secondary" icon="download" onClick={exportTable}>
         Exporter
       </Button>

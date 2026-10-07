@@ -108,6 +108,23 @@
   .notification-list article>button{grid-column:3}
   .level-head{gap:10px}
   .level-head>div{min-width:0}
+}
+
+.app-content{animation:horizon-page-enter 240ms cubic-bezier(.2,.7,.2,1) both}
+.modal-layer,.scrim{animation:horizon-fade-in 180ms ease-out both}
+.modal{animation:horizon-dialog-enter 220ms cubic-bezier(.2,.75,.25,1) both;transform-origin:center}
+.modal-close,.notification-button,.portal aside nav button,.stat-card,.receipt-card{transition:background-color 180ms ease,color 180ms ease,transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease}
+.btn:active,.modal-close:active,.notification-button:active{transform:scale(.97)}
+.table-action-unavailable{display:inline-flex;align-items:center;min-height:28px;color:var(--muted);font-size:10px}
+@keyframes horizon-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes horizon-page-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes horizon-dialog-enter{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(hover:hover) and (pointer:fine){
+  .stat-card:hover,.receipt-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(16,35,70,.08)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
   .profile-summary>div:last-child span{overflow-wrap:anywhere}
   .filters button.btn-secondary{display:inline-flex}
   .filters .btn-ghost{display:none}

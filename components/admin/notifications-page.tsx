@@ -5,7 +5,6 @@ import { usePortalActions } from "@/components/portal/portal-context"
 import {
   Amount,
   Badge,
-  BarChart,
   Button,
   Icon,
   Logo,

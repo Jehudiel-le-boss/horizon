@@ -298,6 +298,7 @@ export const mockPaymentPlans: PaymentPlanRecord[] = [
 
 export type PaymentRecord = {
   date: string
+  dateISO?: string
 
   student: string
 
@@ -308,11 +309,14 @@ export type PaymentRecord = {
   method: string
 
   status: string
+
+  note?: string
 }
 
 export const mockPayments: PaymentRecord[] = [
   {
     date: "02 sept. 2026",
+    dateISO: "2026-09-02",
 
     student: "David Koffi",
 
@@ -327,6 +331,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "18 août 2026",
+    dateISO: "2026-08-18",
 
     student: "Sarah Koffi",
 
@@ -341,6 +346,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "05 août 2026",
+    dateISO: "2026-08-05",
 
     student: "Grâce Koffi",
 
@@ -355,6 +361,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "12 juil. 2026",
+    dateISO: "2026-07-12",
 
     student: "David Koffi",
 
