@@ -26,6 +26,7 @@ create type public.notification_channel as enum ('in_app', 'email', 'whatsapp');
 
 create table public.schools (
   id uuid primary key default gen_random_uuid(),
+  singleton boolean not null default true unique check (singleton),
   name text not null check (length(trim(name)) > 0),
   slug text not null unique check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
   country_code char(2) not null default 'BJ',
@@ -170,16 +171,26 @@ create table public.payment_plans (
   id uuid primary key default gen_random_uuid(),
   school_id uuid not null,
   academic_year_id uuid not null,
-  class_id uuid not null,
   name text not null check (length(trim(name)) > 0),
   created_at timestamptz not null default now(),
   foreign key (academic_year_id, school_id)
     references public.academic_years(id, school_id) on delete cascade,
-  foreign key (class_id, school_id)
-    references public.school_classes(id, school_id) on delete cascade,
-  unique (school_id, academic_year_id, class_id, name),
+  unique (school_id, academic_year_id, name),
   unique (id, school_id)
 );
+
+create table public.payment_plan_classes (
+  school_id uuid not null,
+  plan_id uuid not null,
+  class_id uuid not null,
+  foreign key (plan_id, school_id)
+    references public.payment_plans(id, school_id) on delete cascade,
+  foreign key (class_id, school_id)
+    references public.school_classes(id, school_id) on delete cascade,
+  primary key (plan_id, class_id)
+);
+create index payment_plan_classes_class_idx
+  on public.payment_plan_classes (school_id, class_id, plan_id);
 
 create table public.payment_plan_installments (
   id uuid primary key default gen_random_uuid(),
@@ -187,7 +198,6 @@ create table public.payment_plan_installments (
   plan_id uuid not null,
   sequence_number integer not null check (sequence_number > 0),
   label text not null check (length(trim(label)) > 0),
-  amount bigint not null check (amount > 0),
   due_on date not null,
   created_at timestamptz not null default now(),
   foreign key (plan_id, school_id)
@@ -516,6 +526,7 @@ alter table public.enrollments enable row level security;
 alter table public.fee_categories enable row level security;
 alter table public.fee_configurations enable row level security;
 alter table public.payment_plans enable row level security;
+alter table public.payment_plan_classes enable row level security;
 alter table public.payment_plan_installments enable row level security;
 alter table public.invoices enable row level security;
 alter table public.payments enable row level security;
@@ -648,10 +659,26 @@ create policy "Related users can read payment plans"
   on public.payment_plans for select to authenticated
   using (
     private.has_school_role(school_id, null)
-    or private.is_guardian_of_class(school_id, class_id)
+    or exists (
+      select 1 from public.payment_plan_classes as plan_class
+      where plan_class.plan_id = public.payment_plans.id
+        and plan_class.school_id = public.payment_plans.school_id
+        and private.is_guardian_of_class(plan_class.school_id, plan_class.class_id)
+    )
   );
 create policy "School leaders can manage payment plans"
   on public.payment_plans for all to authenticated
+  using (private.has_school_role(school_id, array['owner', 'director', 'accountant']::public.school_role[]))
+  with check (private.has_school_role(school_id, array['owner', 'director', 'accountant']::public.school_role[]));
+
+create policy "Related users can read payment plan classes"
+  on public.payment_plan_classes for select to authenticated
+  using (
+    private.has_school_role(school_id, null)
+    or private.is_guardian_of_class(school_id, class_id)
+  );
+create policy "School leaders can manage payment plan classes"
+  on public.payment_plan_classes for all to authenticated
   using (private.has_school_role(school_id, array['owner', 'director', 'accountant']::public.school_role[]))
   with check (private.has_school_role(school_id, array['owner', 'director', 'accountant']::public.school_role[]));
 
@@ -663,7 +690,12 @@ create policy "Related users can read plan installments"
       select 1 from public.payment_plans as plan
       where plan.id = public.payment_plan_installments.plan_id
         and plan.school_id = public.payment_plan_installments.school_id
-        and private.is_guardian_of_class(plan.school_id, plan.class_id)
+        and exists (
+          select 1 from public.payment_plan_classes as plan_class
+          where plan_class.plan_id = plan.id
+            and plan_class.school_id = plan.school_id
+            and private.is_guardian_of_class(plan_class.school_id, plan_class.class_id)
+        )
     )
   );
 create policy "School leaders can manage plan installments"

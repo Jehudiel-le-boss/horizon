@@ -229,19 +229,29 @@ export const mockClasses: ClassRecord[] = [
 
   ...["CI", "CP", "CE1", "CE2", "CM1", "CM2", "CE2 B", "CM2 A"].map((name) => ({
     name,
+
     level: "Primaire" as const,
   })),
 
   ...[
     "6ème",
+
     "5ème",
+
     "4ème",
+
     "3ème",
+
     "Seconde",
+
     "Première",
+
     "Terminale",
+
     "3ème B",
+
     "6ème A",
+
     "5ème A",
   ].map((name) => ({ name, level: "Secondaire" as const })),
 ]
@@ -249,11 +259,11 @@ export const mockClasses: ClassRecord[] = [
 export type PaymentPlanRecord = {
   name: string
 
-  amount: string
-
   installments: string
 
-  students: string
+  classNames: string[]
+
+  dueDates: string[]
 
   status: string
 }
@@ -262,11 +272,21 @@ export const mockPaymentPlans: PaymentPlanRecord[] = [
   {
     name: "Plan standard",
 
-    amount: "450 000 FCFA",
-
     installments: "5 tranches",
 
-    students: "642 apprenants",
+    classNames: ["CE2 B", "CM2 A"],
+
+    dueDates: [
+      "2026-09-15",
+
+      "2026-10-15",
+
+      "2026-11-15",
+
+      "2026-12-15",
+
+      "2027-01-15",
+    ],
 
     status: "Actif",
   },
@@ -274,11 +294,11 @@ export const mockPaymentPlans: PaymentPlanRecord[] = [
   {
     name: "Plan trimestriel",
 
-    amount: "450 000 FCFA",
-
     installments: "3 tranches",
 
-    students: "164 apprenants",
+    classNames: ["3ème B", "6ème A"],
+
+    dueDates: ["2026-09-15", "2027-01-15", "2027-04-15"],
 
     status: "Actif",
   },
@@ -286,11 +306,11 @@ export const mockPaymentPlans: PaymentPlanRecord[] = [
   {
     name: "Paiement comptant",
 
-    amount: "450 000 FCFA",
-
     installments: "1 tranche",
 
-    students: "44 apprenants",
+    classNames: ["Grande Section"],
+
+    dueDates: ["2026-09-15"],
 
     status: "Actif",
   },
@@ -298,6 +318,7 @@ export const mockPaymentPlans: PaymentPlanRecord[] = [
 
 export type PaymentRecord = {
   date: string
+
   dateISO?: string
 
   student: string
@@ -316,6 +337,7 @@ export type PaymentRecord = {
 export const mockPayments: PaymentRecord[] = [
   {
     date: "02 sept. 2026",
+
     dateISO: "2026-09-02",
 
     student: "David Koffi",
@@ -331,6 +353,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "18 août 2026",
+
     dateISO: "2026-08-18",
 
     student: "Sarah Koffi",
@@ -346,6 +369,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "05 août 2026",
+
     dateISO: "2026-08-05",
 
     student: "Grâce Koffi",
@@ -361,6 +385,7 @@ export const mockPayments: PaymentRecord[] = [
 
   {
     date: "12 juil. 2026",
+
     dateISO: "2026-07-12",
 
     student: "David Koffi",

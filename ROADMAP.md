@@ -52,7 +52,8 @@ Horizon doit permettre à un établissement scolaire et aux familles de gérer l
 - Aucun backend ou API métier.
 - Aucune base de données persistante.
 - Aucun vrai compte, contrôle de session ou autorisation par rôle.
-- Aucune isolation entre établissements (multi-tenant).
+- Aucun backend configuré pour l’école cliente ; le produit cible une seule école par déploiement.
+- Aucune personnalisation persistée (identité, logo, année scolaire et paramètres métier propres à cette installation).
 - Aucun encaissement en ligne ni rapprochement de transactions avec un prestataire.
 - Aucune intégration d’envoi SMS/e-mail.
 - Aucune génération de reçu certifiée côté serveur.
@@ -65,7 +66,8 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 
 ### Phase 0 — Cadrer le produit et les règles de gestion
 
-- [x] Définir le modèle de service : un établissement au lancement, schéma avec `school_id` et contrôle d’accès dès le départ afin de permettre l’ajout futur d’autres établissements.
+- [x] Définir le modèle de service : une école cliente par déploiement. `school_id` est une clé interne de propriété des données de cette installation, pas une fonctionnalité de plateforme multi-écoles.
+- [ ] Préparer un démarrage rapide pour une future école : nouvelle installation isolée, fiche établissement, logo/couleurs, années, classes, tarifs, échéanciers et modèles de reçus configurables sans branche applicative spécifique.
 - [x] Confirmer le pays d’exploitation, la devise (FCFA/XOF), le fuseau horaire et le format des dates : Bénin, XOF/FCFA, fuseau `Africa/Porto-Novo`, interface en français.
 - [x] Définir l’année scolaire et les statuts d’admission : chaque inscription est rattachée à une année et à une classe ; une inscription reste en attente tant que l’administration n’a pas accepté/refusé le dossier. Un parent peut confirmer une association proposée, mais ne peut pas s’auto-déclarer admis.
 - [x] Définir le lien parent-enfant : invitation créée par l’école ou l’administration, acceptation/vérification par le parent, puis validation par l’école avant accès aux données sensibles. Aucune recherche libre ne doit permettre de découvrir des élèves.
@@ -90,7 +92,7 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 - [ ] Créer les environnements `development`, `staging` et `production` ainsi que leurs bases distinctes.
 - [x] Préparer `.env.example`, les clients Supabase navigateur/serveur et le `proxy.ts` de renouvellement de session Next.js 16 ; conserver la maquette si aucune configuration Supabase n’est fournie.
 - [x] Ébaucher le schéma relationnel versionné : établissements, rôles, années/classes, familles/apprenants/inscriptions, frais/plans, factures/paiements/remboursements/reçus, audit et notifications.
-- [ ] Appliquer et tester la migration initiale sur un projet Supabase de développement ; vérifier les politiques RLS avec plusieurs rôles/familles.
+- [ ] Appliquer et tester la migration initiale sur un projet Supabase de développement ; vérifier les politiques RLS avec plusieurs rôles/familles de l’école.
 - [ ] Définir une stratégie de persistance des données mockées et d’import initial contrôlé.
 - [x] Définir des schémas Zod réutilisables pour valider les formulaires de paiement manuel, parent, apprenant, classe et échéancier avant toute écriture.
 - [ ] Définir la validation d’entrée côté serveur et les réponses d’erreur typées.
@@ -98,7 +100,7 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 - [ ] Mettre en place sauvegardes automatiques, rétention, test de restauration et procédure de reprise.
 - [ ] Ajouter limitation de débit sur connexion, OTP, récupération de mot de passe et endpoints publics.
 - [ ] Configurer CORS/CSRF, cookies sécurisés, en-têtes de sécurité et politique CSP adaptée à Next.js.
-- [ ] Vérifier l’isolation des données par établissement et par famille au niveau API et base de données.
+- [ ] Vérifier la séparation des données entre rôles/familles au niveau API et base de données ; une installation correspond à une seule école.
 - [ ] Définir la gestion des clés et secrets : coffre de secrets du fournisseur, rotation et séparation par environnement.
 - [ ] Établir les règles de migration sans supprimer les mocks avant validation de la parité fonctionnelle.
 
@@ -153,7 +155,9 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 
 - [ ] Remplacer les configurations locales de frais par des configurations persistées par année/niveau/classe.
 - [ ] Gérer catégories, montants, activation, exceptions et historique des changements.
-- [ ] Gérer plans, nombre de tranches, montants, dates limites et statut actif/archivé.
+- [x] Relier chaque échéancier à une ou plusieurs classes créées dans l’administration (maquette et schéma).
+- [x] Définir le plan comme un calendrier de tranches : les montants sont calculés d’après les frais propres à chaque apprenant, même lorsqu’un plan vise plusieurs classes.
+- [ ] Gérer plans, nombre de tranches, dates limites et statut actif/archivé.
 - [ ] Valider les totaux, arrondis, échéances et soldes côté serveur.
 - [ ] Définir ce qui arrive aux échéanciers déjà affectés lorsqu’une configuration est modifiée.
 - [ ] Calculer les soldes à partir des écritures validées plutôt que des valeurs libres du navigateur.
@@ -249,7 +253,7 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 4. Un paiement manuel ou en ligne est enregistré une seule fois.
 5. Le solde, l’historique, le reçu et la notification sont cohérents.
 6. L’administration retrouve le paiement, le reçu et les rapports correspondants.
-7. Un compte d’un autre établissement/famille ne peut accéder à aucune de ces données.
+7. Une autre famille de la même école ne peut accéder à aucune donnée non associée à ses enfants.
 
 ### Phase 9 — Exploitation et lancement
 
@@ -325,7 +329,7 @@ STORAGE_SECRET_KEY=
 
 ### Informations métier à confirmer — elles ne sont pas des clés
 
-- [ ] Un seul établissement ou plateforme multi-écoles dès la première version.
+- [x] Produit destiné à une seule école par déploiement ; les futures écoles auront leur propre installation personnalisable.
 - [ ] Pays, fuseau horaire, devise et formats de date.
 - [ ] Paiement en ligne ou encaissement enregistré par l’administration seulement.
 - [ ] Prestataire(s) de paiement souhaité(s) et moyens réellement actifs pour l’établissement.

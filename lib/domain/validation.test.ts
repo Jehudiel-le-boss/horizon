@@ -120,7 +120,19 @@ describe("school record input schemas", () => {
       classInputSchema.safeParse({ name: "  ", level: "Primaire" }).success,
     ).toBe(false)
 
-    const plan = { name: "Standard", amount: "450000" }
+    const plan = {
+      name: "Standard",
+
+      classNames: ["CM2 A", "CE2 B"],
+
+      dueDates: [
+        "2026-09-15",
+        "2026-10-15",
+        "2026-11-15",
+        "2026-12-15",
+        "2027-01-15",
+      ],
+    }
 
     expect(
       paymentPlanInputSchema.safeParse({
@@ -135,6 +147,52 @@ describe("school record input schemas", () => {
         ...plan,
 
         installments: "13",
+      }).success,
+    ).toBe(false)
+
+    expect(
+      paymentPlanInputSchema.safeParse({
+        ...plan,
+
+        classNames: [],
+
+        installments: "5",
+      }).success,
+    ).toBe(false)
+
+    expect(
+      paymentPlanInputSchema.safeParse({
+        ...plan,
+
+        classNames: ["CM2 A", "CM2 A"],
+
+        installments: "5",
+      }).success,
+    ).toBe(false)
+
+    expect(
+      paymentPlanInputSchema.safeParse({
+        ...plan,
+
+        dueDates: ["2026-09-15"],
+
+        installments: "5",
+      }).success,
+    ).toBe(false)
+
+    expect(
+      paymentPlanInputSchema.safeParse({
+        ...plan,
+
+        dueDates: [
+          "2026-09-15",
+          "2026-08-15",
+          "2026-11-15",
+          "2026-12-15",
+          "2027-01-15",
+        ],
+
+        installments: "5",
       }).success,
     ).toBe(false)
   })

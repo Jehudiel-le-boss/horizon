@@ -110,20 +110,52 @@
   .level-head>div{min-width:0}
 }
 
-.app-content{animation:horizon-page-enter 240ms cubic-bezier(.2,.7,.2,1) both}
+.app-content{view-transition-name:portal-content;animation:horizon-page-enter 360ms cubic-bezier(.2,.75,.25,1) both}
 .modal-layer,.scrim{animation:horizon-fade-in 180ms ease-out both}
 .modal{animation:horizon-dialog-enter 220ms cubic-bezier(.2,.75,.25,1) both;transform-origin:center}
+.modal-layer{view-transition-name:portal-modal}
+.modal-layer.is-closing{animation:horizon-fade-out 180ms ease-in both;pointer-events:none}
+.modal-layer.is-closing .modal{animation:horizon-dialog-exit 180ms cubic-bezier(.4,0,1,1) both}
 .modal-close,.notification-button,.portal aside nav button,.stat-card,.receipt-card{transition:background-color 180ms ease,color 180ms ease,transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease}
 .btn:active,.modal-close:active,.notification-button:active{transform:scale(.97)}
 .table-action-unavailable{display:inline-flex;align-items:center;min-height:28px;color:var(--muted);font-size:10px}
 @keyframes horizon-fade-in{from{opacity:0}to{opacity:1}}
-@keyframes horizon-page-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes horizon-dialog-enter{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes horizon-fade-out{from{opacity:1}to{opacity:0}}
+@keyframes horizon-page-enter{from{opacity:0;transform:translateY(14px);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes horizon-dialog-enter{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(2px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes horizon-dialog-exit{to{opacity:0;transform:translateY(8px) scale(.98);filter:blur(2px)}}
+@keyframes horizon-route-out{to{opacity:0;transform:translateX(-12px);filter:blur(2px)}}
+@keyframes horizon-route-in{from{opacity:0;transform:translateX(12px);filter:blur(2px)}to{opacity:1;transform:translateX(0);filter:blur(0)}}
+::view-transition-old(portal-content){animation:180ms cubic-bezier(.4,0,1,1) both horizon-route-out}
+::view-transition-new(portal-content){animation:320ms cubic-bezier(.2,.75,.25,1) both horizon-route-in}
+.plan-class-list{display:grid;gap:8px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:10px}
+.plan-class-list>b,.plan-class-options legend,.plan-class-options section>b{color:var(--navy);font-size:10px;font-weight:800}
+.plan-class-list>div{display:flex;flex-wrap:wrap;gap:6px}
+.plan-class-list>div>span{padding:5px 8px;border-radius:7px;background:var(--blue-soft);color:var(--blue);font-size:9px;font-weight:700}
+.plan-amount-note{margin:-4px 0 12px;color:var(--muted);font-size:10px}
+.plan-class-warning{color:var(--orange);font-size:10px}
+.plan-class-options{min-width:0;margin:0 0 14px;padding:14px;border:1px solid var(--line);border-radius:12px}
+.plan-class-options legend{padding:0 5px}
+.plan-class-options>p{margin:0 0 12px;color:var(--muted);font-size:10px}
+.plan-class-options>div{display:grid;gap:12px}
+.plan-class-options section{display:grid;gap:7px}
+.plan-class-options section>div{display:flex;flex-wrap:wrap;gap:7px}
+.plan-class-options section label{display:flex;align-items:center;gap:7px;margin:0;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:10px;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease}
+.plan-class-options section label:has(input:checked){background:var(--blue-soft);border-color:#b9d0f5;color:var(--blue)}
+.plan-class-options input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--blue)}
+.plan-due-date-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.plan-due-date-list label{display:grid;gap:6px;margin:0;color:var(--muted);font-size:10px}
+.plan-due-date-list input{margin:0}
+.schedule-unassigned{display:flex;align-items:flex-start;gap:12px;padding:18px;color:var(--muted)}
+.schedule-unassigned>.icon{flex:none;color:var(--blue)}
+.schedule-unassigned h3{margin:0 0 5px;color:var(--navy);font-size:14px}
+.schedule-unassigned p{margin:0;font-size:11px}
 @media(hover:hover) and (pointer:fine){
   .stat-card:hover,.receipt-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(16,35,70,.08)}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
+  ::view-transition-old(portal-content),::view-transition-new(portal-content){animation-duration:.01ms!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
   .profile-summary>div:last-child span{overflow-wrap:anywhere}
   .filters button.btn-secondary{display:inline-flex}
@@ -133,3 +165,4 @@
   .fee-amount-input{width:105px}
   .add-user-row{flex-direction:column}
 }
+@media(max-width:520px){.plan-due-date-list{grid-template-columns:1fr}}

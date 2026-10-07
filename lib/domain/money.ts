@@ -31,3 +31,29 @@ export function formatXofAmount(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+
+export function splitAmountIntoInstallments(
+  amount: number,
+
+  installmentCount: number,
+): number[] {
+  if (!Number.isSafeInteger(amount) || amount < 0) {
+    throw new RangeError(
+      "Le montant à répartir doit être un entier positif ou nul.",
+    )
+  }
+
+  if (!Number.isSafeInteger(installmentCount) || installmentCount < 1) {
+    throw new RangeError("Le nombre de tranches doit être un entier positif.")
+  }
+
+  const baseAmount = Math.floor(amount / installmentCount)
+
+  const remainder = amount % installmentCount
+
+  return Array.from(
+    { length: installmentCount },
+
+    (_, index) => baseAmount + (index < remainder ? 1 : 0),
+  )
+}

@@ -5,7 +5,9 @@ import { useEffect, useState, type FormEvent } from "react"
 import { Badge, Button, Icon, Logo } from "@/components/shared/ui"
 
 import { usePortalActions } from "@/components/portal/portal-context"
+
 import { formatXofAmount, parseXofDisplayAmount } from "@/lib/domain/money"
+
 import {
   classInputSchema,
   createManualPaymentSchema,
@@ -18,14 +20,22 @@ function getFirstValidationMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Vérifiez les informations saisies."
 }
 
+function getDefaultPlanDueDate(index: number) {
+  return new Date(Date.UTC(2026, 8 + index, 15)).toISOString().slice(0, 10)
+}
+
 export default function Modal({
   type,
 
   close,
+
+  isClosing = false,
 }: {
   type: string
 
   close: () => void
+
+  isClosing?: boolean
 }) {
   const {
     students,
@@ -61,6 +71,27 @@ export default function Modal({
 
   const [action, value = ""] = type.split(/:(.*)/, 2)
 
+  const modalLayerClassName = isClosing
+    ? "modal-layer is-closing"
+    : "modal-layer"
+
+  const planToEdit =
+    action === "plan-edit"
+      ? paymentPlans.find((plan) => plan.name === value)
+      : undefined
+
+  const [planInstallments, setPlanInstallments] = useState(
+    () => planToEdit?.installments.match(/\d+/)?.[0] ?? "5",
+  )
+
+  const [planDueDates, setPlanDueDates] = useState(
+    () =>
+      planToEdit?.dueDates ??
+      Array.from({ length: Number(planInstallments) }, (_, index) =>
+        getDefaultPlanDueDate(index),
+      ),
+  )
+
   const [success, setSuccess] = useState("")
 
   const [formError, setFormError] = useState("")
@@ -74,6 +105,9 @@ export default function Modal({
   const [className, setClassName] = useState("")
 
   const [classError, setClassError] = useState("")
+
+  const [selectedPlanClassNames, setSelectedPlanClassNames] =
+    useState<string[]>(() => planToEdit?.classNames ?? [])
 
   const [studentLevel, setStudentLevel] = useState("Maternelle")
 
@@ -102,7 +136,9 @@ export default function Modal({
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null
+
     const previousBodyOverflow = document.body.style.overflow
+
     const dialog = document.querySelector<HTMLElement>(
       ".modal-layer [role='dialog']",
     )
@@ -111,9 +147,11 @@ export default function Modal({
 
     if (dialog) {
       dialog.tabIndex = -1
+
       const formTarget = dialog.querySelector<HTMLElement>(
         'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
       )
+
       const fallbackTarget = dialog.querySelector<HTMLElement>(
         "button:not([disabled])",
       )
@@ -135,20 +173,26 @@ export default function Modal({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault()
+
         close()
+
         return
       }
 
       if (event.key !== "Tab" || !dialog) return
 
       const focusableElements = getFocusableElements()
+
       if (focusableElements.length === 0) {
         event.preventDefault()
+
         dialog.focus()
+
         return
       }
 
       const first = focusableElements[0]
+
       const last = focusableElements[focusableElements.length - 1]
 
       if (
@@ -157,9 +201,11 @@ export default function Modal({
           !dialog.contains(document.activeElement))
       ) {
         event.preventDefault()
+
         last.focus()
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault()
+
         first.focus()
       }
     }
@@ -168,7 +214,9 @@ export default function Modal({
 
     return () => {
       document.removeEventListener("keydown", onKeyDown)
+
       document.body.style.overflow = previousBodyOverflow
+
       if (
         previouslyFocused &&
         previouslyFocused !== document.body &&
@@ -203,10 +251,15 @@ export default function Modal({
         parseXofDisplayAmount(student.remaining),
       ).safeParse({
         studentId: get("student"),
+
         amount: get("amount"),
+
         date: get("date"),
+
         method: get("method"),
+
         reference: get("reference"),
+
         comment: get("comment"),
       })
 
@@ -234,6 +287,7 @@ export default function Modal({
 
       createPayment({
         date,
+
         dateISO: payment.date,
 
         student: `${student.firstName} ${student.lastName}`,
@@ -259,10 +313,15 @@ export default function Modal({
     if (action === "student") {
       const studentResult = studentInputSchema.safeParse({
         firstName: get("firstName"),
+
         lastName: get("lastName"),
+
         className: get("className"),
+
         level: get("level"),
+
         parent: get("parent"),
+
         total: get("total"),
       })
 
@@ -302,8 +361,11 @@ export default function Modal({
     if (action === "parent") {
       const parentResult = parentInputSchema.safeParse({
         firstName: get("firstName"),
+
         lastName: get("lastName"),
+
         phone: get("phone"),
+
         email: get("email"),
       })
 
@@ -341,6 +403,7 @@ export default function Modal({
     if (action === "class" || action.startsWith("class-")) {
       const classResult = classInputSchema.safeParse({
         name: get("name"),
+
         level: get("level"),
       })
 
@@ -386,8 +449,12 @@ export default function Modal({
 
       const planResult = paymentPlanInputSchema.safeParse({
         name: planName,
-        amount: get("amount"),
+
         installments: get("installments"),
+
+        classNames: data.getAll("classNames").map(String),
+
+        dueDates: data.getAll("dueDates").map(String),
       })
 
       if (!planResult.success) {
@@ -397,16 +464,28 @@ export default function Modal({
       }
 
       const planInput = planResult.data
+
+      const invalidClass = planInput.classNames.find(
+        (className) =>
+          !classes.some((classItem) => classItem.name === className),
+      )
+
+      if (invalidClass) {
+        setFormError(
+          "Une des classes sélectionnées n’existe plus. Actualisez la liste et réessayez.",
+        )
+
+        return
+      }
+
       const record = {
         name: planInput.name,
 
-        amount: `${formatXofAmount(planInput.amount)} FCFA`,
-
         installments: `${planInput.installments} tranches`,
 
-        students:
-          paymentPlans.find((plan) => plan.name === value)?.students ??
-          "0 apprenant",
+        classNames: planInput.classNames,
+
+        dueDates: planInput.dueDates,
 
         status: "Actif",
       }
@@ -468,7 +547,7 @@ export default function Modal({
   if (success) {
     return (
       <div
-        className="modal-layer"
+        className={modalLayerClassName}
         onMouseDown={(event) => event.target === event.currentTarget && close()}
       >
         <section
@@ -517,7 +596,7 @@ export default function Modal({
     if (!payment || payment.status !== "Payé") {
       return (
         <div
-          className="modal-layer"
+          className={modalLayerClassName}
           onMouseDown={(event) =>
             event.target === event.currentTarget && close()
           }
@@ -549,7 +628,7 @@ export default function Modal({
 
     return (
       <div
-        className="modal-layer"
+        className={modalLayerClassName}
         onMouseDown={(event) => event.target === event.currentTarget && close()}
       >
         <section
@@ -649,7 +728,7 @@ export default function Modal({
   if (action === "delete") {
     return (
       <div
-        className="modal-layer"
+        className={modalLayerClassName}
         onMouseDown={(event) => event.target === event.currentTarget && close()}
       >
         <section
@@ -674,6 +753,7 @@ export default function Modal({
               variant="danger"
               onClick={() => {
                 removePaymentPlan(value)
+
                 close()
               }}
             >
@@ -690,7 +770,7 @@ export default function Modal({
 
     return (
       <div
-        className="modal-layer"
+        className={modalLayerClassName}
         onMouseDown={(event) => event.target === event.currentTarget && close()}
       >
         <section
@@ -725,7 +805,7 @@ export default function Modal({
 
     return (
       <div
-        className="modal-layer"
+        className={modalLayerClassName}
         onMouseDown={(event) => event.target === event.currentTarget && close()}
       >
         <section
@@ -762,7 +842,9 @@ export default function Modal({
             <Button
               onClick={() => {
                 if (student) selectStudent(student.id)
+
                 close()
+
                 navigate("fees")
               }}
             >
@@ -781,11 +863,7 @@ export default function Modal({
   const isClass = action === "class" || action.startsWith("class-")
 
   const isPlan = action === "plan" || action === "plan-edit"
-
-  const planToEdit =
-    action === "plan-edit"
-      ? paymentPlans.find((plan) => plan.name === value)
-      : undefined
+  const isEditingPlan = action === "plan-edit"
 
   const matchingStudents = students.filter(
     (student) => student.parent === selectedPaymentParent,
@@ -794,6 +872,7 @@ export default function Modal({
   const paymentStudentOptions = matchingStudents.length
     ? matchingStudents
     : students
+
   const selectedPaymentStudentRecord = students.find(
     (student) => student.id === selectedPaymentStudent,
   )
@@ -802,7 +881,7 @@ export default function Modal({
 
   return (
     <div
-      className="modal-layer"
+      className={modalLayerClassName}
       onMouseDown={(event) => event.target === event.currentTarget && close()}
     >
       <section
@@ -816,7 +895,17 @@ export default function Modal({
         </button>
         <div className="modal-heading">
           <span className="modal-icon">
-            <Icon name={isPayment ? "money" : isClass ? "school" : "user"} />
+            <Icon
+              name={
+                isPayment
+                  ? "money"
+                  : isClass
+                    ? "school"
+                    : isPlan
+                      ? "calendar"
+                      : "user"
+              }
+            />
           </span>
           <div>
             <h2 id="form-title">
@@ -827,7 +916,9 @@ export default function Modal({
                   : isClass
                     ? "Ajouter une classe"
                     : isPlan
-                      ? "Créer un plan de paiement"
+                      ? isEditingPlan
+                        ? "Modifier le plan de paiement"
+                        : "Créer un plan de paiement"
                       : "Ajouter un apprenant"}
             </h2>
             <p>
@@ -838,7 +929,9 @@ export default function Modal({
                   : isClass
                     ? "Complétez la structure pédagogique de démonstration."
                     : isPlan
-                      ? "Définissez un plan visible dans les échéanciers."
+                      ? isEditingPlan
+                        ? "Modifiez les classes concernées et les dates des tranches."
+                        : "Définissez un calendrier et les classes qui le suivent."
                       : "Créez un dossier et associez son responsable."}
             </p>
           </div>
@@ -989,6 +1082,7 @@ export default function Modal({
                     value={className}
                     onChange={(event) => {
                       setClassName(event.target.value)
+
                       setClassError("")
                     }}
                     required
@@ -1013,20 +1107,6 @@ export default function Modal({
                   />
                 </label>
                 <label>
-                  Montant annuel (FCFA)
-                  <input
-                    name="amount"
-                    type="number"
-                    min="1"
-                    required
-                    defaultValue={
-                      planToEdit
-                        ? parseXofDisplayAmount(planToEdit.amount)
-                        : "450000"
-                    }
-                  />
-                </label>
-                <label>
                   Nombre de tranches
                   <input
                     name="installments"
@@ -1034,11 +1114,109 @@ export default function Modal({
                     min="1"
                     max="12"
                     required
-                    defaultValue={
-                      planToEdit?.installments.match(/\d+/)?.[0] ?? "5"
-                    }
+                    value={planInstallments}
+                    onChange={(event) => {
+                      const nextValue = event.target.value
+
+                      setPlanInstallments(nextValue)
+
+                      const count = Number(nextValue)
+
+                      if (!Number.isInteger(count) || count < 1 || count > 12) {
+                        return
+                      }
+
+                      setPlanDueDates((current) =>
+                        Array.from(
+                          { length: count },
+                          (_, index) =>
+                            current[index] ?? getDefaultPlanDueDate(index),
+                        ),
+                      )
+                    }}
                   />
                 </label>
+                <fieldset className="span-2 plan-class-options">
+                  <legend>Dates limites des tranches</legend>
+                  <p>
+                    Définissez une date par tranche. Les montants sont calculés
+                    selon les frais propres à chaque apprenant.
+                  </p>
+                  <div className="plan-due-date-list">
+                    {planDueDates.map((dueDate, index) => (
+                      <label key={index}>
+                        Tranche {index + 1}
+                        <input
+                          type="date"
+                          name="dueDates"
+                          value={dueDate}
+                          required
+                          onChange={(event) =>
+                            setPlanDueDates((current) =>
+                              current.map((date, dateIndex) =>
+                                dateIndex === index ? event.target.value : date,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <fieldset className="span-2 plan-class-options">
+                  <legend>Classes concernées</legend>
+                  <p>
+                    Sélectionnez toutes les classes auxquelles ce plan
+                    s’applique.
+                  </p>
+                  {classes.length === 0 ? (
+                    <p className="form-error" role="alert">
+                      Créez d’abord une classe dans « Classes & niveaux ».
+                    </p>
+                  ) : (
+                    <div>
+                      {["Maternelle", "Primaire", "Secondaire"].map((level) => {
+                        const levelClasses = classes.filter(
+                          (classItem) => classItem.level === level,
+                        )
+
+                        if (levelClasses.length === 0) return null
+
+                        return (
+                          <section key={level} aria-label={level}>
+                            <b>{level}</b>
+                            <div>
+                              {levelClasses.map((classItem) => (
+                                <label key={classItem.name}>
+                                  <input
+                                    type="checkbox"
+                                    name="classNames"
+                                    value={classItem.name}
+                                    checked={selectedPlanClassNames.includes(
+                                      classItem.name,
+                                    )}
+                                    onChange={(event) => {
+                                      setSelectedPlanClassNames((current) =>
+                                        event.target.checked
+                                          ? [...current, classItem.name]
+                                          : current.filter(
+                                              (name) => name !== classItem.name,
+                                            ),
+                                      )
+
+                                      setFormError("")
+                                    }}
+                                  />
+                                  {classItem.name}
+                                </label>
+                              ))}
+                            </div>
+                          </section>
+                        )
+                      })}
+                    </div>
+                  )}
+                </fieldset>
               </>
             ) : (
               <>
@@ -1071,7 +1249,9 @@ export default function Modal({
                     onChange={(event) => setStudentClass(event.target.value)}
                   >
                     {classes
+
                       .filter((item) => item.level === studentLevel)
+
                       .map((item) => (
                         <option key={item.name} value={item.name}>
                           {item.name}

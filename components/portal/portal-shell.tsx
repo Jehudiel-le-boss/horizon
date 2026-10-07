@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
 import { usePathname, useRouter } from "next/navigation"
 
@@ -9,6 +9,7 @@ import { Bell, ChevronRight, LogOut, Menu, X } from "lucide-react"
 import { Icon, Logo, type IconName } from "@/components/shared/ui"
 
 import { PortalActionsContext, type PortalRole } from "./portal-context"
+
 import {
   mockNotifications,
   mockClasses,
@@ -24,6 +25,7 @@ import {
   type PaymentRecord,
   type StudentRecord,
 } from "@/lib/mock-data"
+
 import { formatXofAmount, parseXofDisplayAmount } from "@/lib/domain/money"
 
 import Modal from "./modal"
@@ -69,18 +71,69 @@ const adminNav = [
 ] as const
 
 type NavigationItem = readonly [string, IconName, string]
+
 type PersistedPortalState = {
   students: StudentRecord[]
+
   selectedStudentId: string
+
   parents: ParentRecord[]
+
   payments: PaymentRecord[]
+
   notifications: NotificationRecord[]
+
   parentNotifications: NotificationRecord[]
+
   classes: ClassRecord[]
-  paymentPlans: PaymentPlanRecord[]
+
+  paymentPlans: PersistedPaymentPlanRecord[]
 }
 
+type PersistedPaymentPlanRecord = Omit<PaymentPlanRecord, "classNames" | "dueDates"> & Partial<Pick<PaymentPlanRecord, "classNames" | "dueDates">>
+
 const portalStateKey = "horizon-demo-state-v1"
+
+function getDefaultPaymentPlanDueDate(index: number) {
+  return new Date(Date.UTC(2026, 8 + index, 15)).toISOString().slice(0, 10)
+}
+
+function normalizePaymentPlan(
+  plan: PersistedPaymentPlanRecord,
+): PaymentPlanRecord {
+  const mockPlan = mockPaymentPlans.find(
+    (mockPlan) => mockPlan.name === plan.name,
+  )
+  const parsedCount = Number.parseInt(
+    plan.installments.match(/\d+/)?.[0] ?? "1",
+    10,
+  )
+  const installmentCount = Math.min(
+    Math.max(Number.isInteger(parsedCount) ? parsedCount : 1, 1),
+    12,
+  )
+  const savedDueDates = Array.isArray(plan.dueDates) ? plan.dueDates : []
+
+  return {
+    ...plan,
+    classNames: Array.isArray(plan.classNames)
+      ? plan.classNames
+      : (mockPlan?.classNames ?? []),
+    dueDates: Array.from(
+      { length: installmentCount },
+      (_, index) =>
+        savedDueDates[index] ??
+        mockPlan?.dueDates[index] ??
+        getDefaultPaymentPlanDueDate(index),
+    ),
+  }
+}
+
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (
+    update: () => void | Promise<void>,
+  ) => { finished: Promise<void> }
+}
 
 export default function PortalShell({
   role,
@@ -98,24 +151,45 @@ export default function PortalShell({
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const [modal, setModal] = useState<string | null>(null)
+
+  const [modalClosing, setModalClosing] = useState(false)
+
+  const modalCloseTimer = useRef<number | null>(null)
+
+  const pendingNavigation = useRef<{
+    pathname: string
+
+    resolve: () => void
+  } | null>(null)
+
   const [students, setStudents] = useState<StudentRecord[]>(mockStudents)
+
   const [selectedStudentId, setSelectedStudentId] = useState("HZN-0261")
+
   const [parents, setParents] = useState<ParentRecord[]>(mockParents)
+
   const [payments, setPayments] = useState<PaymentRecord[]>(mockPayments)
+
   const [notifications, setNotifications] =
     useState<NotificationRecord[]>(mockNotifications)
+
   const [parentNotifications, setParentNotifications] =
     useState<NotificationRecord[]>(mockParentNotifications)
+
   const [classes, setClasses] = useState<ClassRecord[]>(mockClasses)
+
   const [paymentPlans, setPaymentPlans] =
     useState<PaymentPlanRecord[]>(mockPaymentPlans)
+
   const [stateLoaded, setStateLoaded] = useState(false)
 
   useEffect(() => {
     try {
       const serialized = window.sessionStorage.getItem(portalStateKey)
+
       if (serialized) {
         const restored: unknown = JSON.parse(serialized)
+
         if (
           restored !== null &&
           typeof restored === "object" &&
@@ -137,14 +211,22 @@ export default function PortalShell({
           Array.isArray(restored.paymentPlans)
         ) {
           const state = restored as PersistedPortalState
+
           setStudents(state.students)
+
           setSelectedStudentId(state.selectedStudentId)
+
           setParents(state.parents)
+
           setPayments(state.payments)
+
           setNotifications(state.notifications)
+
           setParentNotifications(state.parentNotifications)
+
           setClasses(state.classes)
-          setPaymentPlans(state.paymentPlans)
+
+          setPaymentPlans(state.paymentPlans.map(normalizePaymentPlan))
         } else {
           window.sessionStorage.removeItem(portalStateKey)
         }
@@ -152,8 +234,10 @@ export default function PortalShell({
     } catch (error) {
       console.error(
         "Impossible de restaurer les données de démonstration.",
+
         error,
       )
+
       window.sessionStorage.removeItem(portalStateKey)
     } finally {
       setStateLoaded(true)
@@ -162,33 +246,51 @@ export default function PortalShell({
 
   useEffect(() => {
     if (!stateLoaded) return
+
     const state: PersistedPortalState = {
       students,
+
       selectedStudentId,
+
       parents,
+
       payments,
+
       notifications,
+
       parentNotifications,
+
       classes,
+
       paymentPlans,
     }
+
     try {
       window.sessionStorage.setItem(portalStateKey, JSON.stringify(state))
     } catch (error) {
       console.error(
         "Impossible de sauvegarder les données de démonstration.",
+
         error,
       )
     }
   }, [
     stateLoaded,
+
     students,
+
     selectedStudentId,
+
     parents,
+
     payments,
+
     notifications,
+
     parentNotifications,
+
     classes,
+
     paymentPlans,
   ])
 
@@ -202,15 +304,81 @@ export default function PortalShell({
     (role === "parent" && page === "child" ? "Situation de l’enfant" : "Détail")
 
   const workspace = role === "parent" ? "Espace famille" : "Administration"
+
   const unreadNotifications =
     role === "parent"
       ? parentNotifications.filter((notification) => !notification.read).length
       : notifications.filter((notification) => !notification.read).length
 
+  useEffect(() => {
+    if (pendingNavigation.current?.pathname !== pathname) return
+
+    pendingNavigation.current.resolve()
+
+    pendingNavigation.current = null
+  }, [pathname])
+
+  useEffect(
+    () => () => {
+      if (modalCloseTimer.current !== null) {
+        window.clearTimeout(modalCloseTimer.current)
+      }
+
+      pendingNavigation.current?.resolve()
+    },
+
+    [],
+  )
+
   function navigate(nextPage: string) {
-    router.push(nextPage === "dashboard" ? `/${role}` : `/${role}/${nextPage}`)
+    const target =
+      nextPage === "dashboard" ? `/${role}` : `/${role}/${nextPage}`
+
+    if (target !== pathname) {
+      const transitionDocument = document as ViewTransitionDocument
+
+      if (transitionDocument.startViewTransition) {
+        pendingNavigation.current?.resolve()
+
+        const transition = transitionDocument.startViewTransition.call(
+          transitionDocument,
+
+          () =>
+            new Promise<void>((resolve) => {
+              pendingNavigation.current = { pathname: target, resolve }
+
+              router.push(target)
+            }),
+        )
+
+        void transition.finished.catch((error: unknown) => {
+          console.error("La transition de navigation a échoué.", error)
+        })
+      } else {
+        router.push(target)
+      }
+    }
 
     setMobileOpen(false)
+  }
+
+  function closeModal() {
+    if (modalCloseTimer.current !== null) return
+
+    setModalClosing(true)
+
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches
+      ? 0
+      : 180
+
+    modalCloseTimer.current = window.setTimeout(() => {
+      setModal(null)
+
+      setModalClosing(false)
+
+      modalCloseTimer.current = null
+    }, duration)
   }
 
   function selectStudent(id: string) {
@@ -223,20 +391,29 @@ export default function PortalShell({
     setStudents((current) => [
       {
         ...student,
+
         id: `HZN-${String(262 + current.length - mockStudents.length).padStart(4, "0")}`,
+
         paid: "0",
+
         remaining: student.total,
+
         status: "À suivre",
       },
+
       ...current,
     ])
+
     const amount = parseXofDisplayAmount(student.total)
+
     setParents((current) =>
       current.map((parent) =>
         parent.name === student.parent
           ? {
               ...parent,
+
               children: String(Number.parseInt(parent.children, 10) + 1),
+
               due: formatXofAmount(parseXofDisplayAmount(parent.due) + amount),
             }
           : parent,
@@ -250,11 +427,16 @@ export default function PortalShell({
     setParents((current) => [
       {
         ...parent,
+
         children: "0",
+
         due: "0",
+
         paid: "0",
+
         status: "Nouveau",
       },
+
       ...current,
     ])
   }
@@ -288,39 +470,65 @@ export default function PortalShell({
     setPaymentPlans((current) =>
       current.map((plan) => {
         if (plan.name !== name) return plan
+
         const count = Number.parseInt(plan.installments, 10)
-        return { ...plan, installments: `${Math.min(count + 1, 12)} tranches` }
+
+        const nextCount = Math.min(count + 1, 12)
+
+        return {
+          ...plan,
+
+          installments: `${nextCount} tranches`,
+
+          dueDates: Array.from(
+            { length: nextCount },
+            (_, index) =>
+              plan.dueDates[index] ?? getDefaultPaymentPlanDueDate(index),
+          ),
+        }
       }),
     )
   }
 
   function createPayment(payment: Omit<PaymentRecord, "status">) {
     setPayments((current) => [{ ...payment, status: "Payé" }, ...current])
+
     const amount = parseXofDisplayAmount(payment.amount)
+
     const student = students.find(
       (item) => `${item.firstName} ${item.lastName}` === payment.student,
     )
+
     setStudents((current) =>
       current.map((item) => {
         if (`${item.firstName} ${item.lastName}` !== payment.student)
           return item
+
         const paid = parseXofDisplayAmount(item.paid) + amount
+
         const total = parseXofDisplayAmount(item.total)
+
         const remaining = Math.max(total - paid, 0)
+
         return {
           ...item,
+
           paid: formatXofAmount(paid),
+
           remaining: formatXofAmount(remaining),
+
           status: remaining === 0 ? "Soldé" : "À jour",
         }
       }),
     )
+
     if (student) {
       setParents((current) =>
         current.map((parent) =>
           parent.name === student.parent
             ? {
                 ...parent,
+
                 paid: formatXofAmount(
                   parseXofDisplayAmount(parent.paid) + amount,
                 ),
@@ -329,24 +537,37 @@ export default function PortalShell({
         ),
       )
     }
+
     const now = new Date()
+
     const paymentNotification: NotificationRecord = {
       id: `payment-${payment.reference}`,
+
       title: "Paiement bien enregistré",
+
       message: `Le paiement de ${payment.amount} pour ${payment.student} a bien été enregistré (${payment.reference}).`,
+
       audience: student?.parent ?? "Famille Horizon",
+
       date: `Aujourd’hui, ${new Intl.DateTimeFormat("fr-FR", {
         hour: "2-digit",
+
         minute: "2-digit",
       }).format(now)}`,
+
       channel: "Plateforme",
+
       category: "payment",
+
       read: true,
     }
+
     setNotifications((current) => [paymentNotification, ...current])
+
     if (student?.parent === "Aminata Koffi") {
       setParentNotifications((current) => [
         { ...paymentNotification, read: false },
+
         ...current,
       ])
     }
@@ -356,21 +577,31 @@ export default function PortalShell({
     notification: Omit<NotificationRecord, "id" | "date" | "read">,
   ) {
     const now = new Date()
+
     const date = `Aujourd’hui, ${new Intl.DateTimeFormat("fr-FR", {
       hour: "2-digit",
+
       minute: "2-digit",
     }).format(now)}`
+
     const newNotification: NotificationRecord = {
       ...notification,
+
       id: `notification-${Date.now()}`,
+
       date,
+
       read: true,
     }
+
     setNotifications((current) => [newNotification, ...current])
+
     const familyStudents = students.filter(
       (student) => student.parent === "Aminata Koffi",
     )
+
     const target = notification.audience
+
     const reachesFamily =
       target === "Tous les parents" ||
       (target.startsWith("Classe ") &&
@@ -379,9 +610,11 @@ export default function PortalShell({
         )) ||
       (target.startsWith("Niveau ") &&
         familyStudents.some((student) => student.level === target.slice(7)))
+
     if (reachesFamily) {
       setParentNotifications((current) => [
         { ...newNotification, read: false },
+
         ...current,
       ])
     }
@@ -391,6 +624,7 @@ export default function PortalShell({
     setNotifications((current) =>
       current.map((notification) => ({ ...notification, read: true })),
     )
+
     setParentNotifications((current) =>
       current.map((notification) => ({ ...notification, read: true })),
     )
@@ -402,6 +636,7 @@ export default function PortalShell({
         notification.id === id ? { ...notification, read: true } : notification,
       ),
     )
+
     setParentNotifications((current) =>
       current.map((notification) =>
         notification.id === id ? { ...notification, read: true } : notification,
@@ -413,26 +648,47 @@ export default function PortalShell({
     <PortalActionsContext.Provider
       value={{
         navigate,
+
         setModal,
+
         students,
+
         selectedStudentId,
+
         parents,
+
         payments,
+
         notifications,
+
         parentNotifications,
+
         classes,
+
         paymentPlans,
+
         createStudent,
+
         createParent,
+
         createClass,
+
         createPaymentPlan,
+
         updatePaymentPlan,
+
         removePaymentPlan,
+
         addPaymentInstallment,
+
         selectStudent,
+
         createPayment,
+
         sendNotification,
+
         markAllNotificationsRead,
+
         markNotificationRead,
       }}
     >
@@ -522,7 +778,9 @@ export default function PortalShell({
             {children}
           </main>
         </div>
-        {modal && <Modal type={modal} close={() => setModal(null)} />}
+        {modal && (
+          <Modal type={modal} close={closeModal} isClosing={modalClosing} />
+        )}
       </div>
     </PortalActionsContext.Provider>
   )

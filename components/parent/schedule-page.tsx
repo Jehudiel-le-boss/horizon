@@ -4,24 +4,28 @@ import { Badge, Amount, Icon, PageIntro } from "@/components/shared/ui"
 
 import { usePortalActions } from "@/components/portal/portal-context"
 
-const dueDates = [
-  "15 juillet 2026",
-
-  "15 septembre 2026",
-
-  "15 octobre 2026",
-
-  "15 novembre 2026",
-
-  "15 janvier 2027",
-]
+import { splitAmountIntoInstallments } from "@/lib/domain/money"
 
 const formatAmount = (value: number) =>
   `${new Intl.NumberFormat("fr-FR").format(value)} FCFA`
 
+const formatDueDate = (value: string) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00.000Z`))
+
 export default function Schedule() {
-  const { navigate, students, payments, selectedStudentId, selectStudent } =
-    usePortalActions()
+  const {
+    navigate,
+    students,
+    payments,
+    paymentPlans,
+    selectedStudentId,
+    selectStudent,
+  } = usePortalActions()
 
   const familyStudents = students.filter(
     (student) => student.parent === "Aminata Koffi",
@@ -40,28 +44,70 @@ export default function Schedule() {
     )
   }
 
+  const plan = paymentPlans.find((item) =>
+    item.classNames.includes(student.className),
+  )
+
+  if (!plan) {
+    return (
+      <>
+        <PageIntro
+          title="Échéancier"
+          text={`Aucun échéancier n’a été affecté à la classe ${student.className}.`}
+          actions={
+            <select
+              aria-label="Choisir un enfant"
+              value={student.id}
+              onChange={(event) => selectStudent(event.target.value)}
+            >
+              {familyStudents.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.firstName} {item.lastName} — {item.className}
+                </option>
+              ))}
+            </select>
+          }
+        />
+        <section className="card schedule-unassigned">
+          <Icon name="info" />
+          <div>
+            <h3>Le plan de paiement n’est pas encore configuré</h3>
+            <p>
+              L’administration doit affecter un échéancier à cette classe avant
+              que les échéances puissent s’afficher.
+            </p>
+          </div>
+        </section>
+      </>
+    )
+  }
+
   const total = Number(student.total.replace(/\D/g, ""))
 
   const paid = Number(student.paid.replace(/\D/g, ""))
 
   const remaining = Number(student.remaining.replace(/\D/g, ""))
 
-  const installmentAmount = Math.ceil(total / 5 / 1000) * 1000
-
-  const paidInstallments = Math.min(
-    5,
-
-    Math.floor(paid / Math.max(installmentAmount, 1)),
+  const installmentCount = plan.dueDates.length
+  const installmentAmounts = splitAmountIntoInstallments(
+    total,
+    installmentCount,
   )
+  let unpaidAmount = paid
+  let paidInstallments = 0
+
+  for (const amount of installmentAmounts) {
+    if (unpaidAmount < amount) break
+
+    unpaidAmount -= amount
+    paidInstallments += 1
+  }
 
   const familyPayments = payments.filter(
     (payment) => payment.student === `${student.firstName} ${student.lastName}`,
   )
 
-  const installments = dueDates.map((date, index) => {
-    const value =
-      index === 4 ? total - installmentAmount * 4 : installmentAmount
-
+  const installments = plan.dueDates.map((date, index) => {
     const status =
       index < paidInstallments
         ? "Payée"
@@ -72,9 +118,9 @@ export default function Schedule() {
     return {
       number: index + 1,
 
-      amount: Math.max(value, 0),
+      amount: installmentAmounts[index],
 
-      dueDate: date,
+      dueDate: formatDueDate(date),
 
       status,
 
@@ -83,13 +129,13 @@ export default function Schedule() {
     }
   })
 
-  const progress = Math.round((paidInstallments / 5) * 100)
+  const progress = Math.round((paidInstallments / installmentCount) * 100)
 
   return (
     <>
       <PageIntro
         title="Échéancier"
-        text={`Suivez chaque tranche du plan de paiement de ${student.firstName} ${student.lastName}.`}
+        text={`Suivez le plan « ${plan.name} » de ${student.firstName} ${student.lastName} (${student.className}).`}
         actions={
           <select
             aria-label="Choisir un enfant"
@@ -106,14 +152,16 @@ export default function Schedule() {
       />
       <div className="schedule-summary">
         <div>
-          <small>Plan annuel</small>
-          <b>5 tranches</b>
+          <small>Calendrier de paiement</small>
+          <b>{plan.installments}</b>
         </div>
         <div className="progress xl">
           <span style={{ width: `${progress}%` }} />
         </div>
         <div>
-          <b>{paidInstallments} / 5</b>
+          <b>
+            {paidInstallments} / {installmentCount}
+          </b>
           <small>tranches payées</small>
         </div>
       </div>

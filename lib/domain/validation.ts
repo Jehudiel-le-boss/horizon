@@ -106,33 +106,86 @@ export const classInputSchema = z.object({
   }),
 })
 
-export const paymentPlanInputSchema = z.object({
-  name: requiredText("Le nom du plan", 100),
+export const paymentPlanInputSchema = z
+  .object({
+    name: requiredText("Le nom du plan", 100),
 
-  amount: positiveXofAmount,
+    classNames: z
 
-  installments: z
+      .array(requiredText("Le nom de la classe", 80))
 
-    .string()
+      .min(1, "Sélectionnez au moins une classe pour ce plan.")
 
-    .trim()
+      .refine((classNames) => new Set(classNames).size === classNames.length, {
+        message: "Une classe ne peut être sélectionnée qu’une seule fois.",
+      }),
 
-    .regex(/^\d+$/, "Saisissez un nombre de tranches entier.")
+    dueDates: z
 
-    .transform(Number)
+      .array(
+        z
 
-    .pipe(
-      z
+          .string()
 
-        .number()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "Saisissez une date d’échéance valide.")
 
-        .int()
+          .refine((value) => {
+            const date = new Date(`${value}T00:00:00.000Z`)
 
-        .min(1, "Un plan doit comporter au moins une tranche.")
+            return (
+              !Number.isNaN(date.valueOf()) &&
+              date.toISOString().slice(0, 10) === value
+            )
+          }, "Saisissez une date d’échéance valide."),
+      )
 
-        .max(12, "Un plan ne peut pas dépasser 12 tranches."),
-    ),
-})
+      .min(1, "Ajoutez au moins une date d’échéance."),
+
+    installments: z
+
+      .string()
+
+      .trim()
+
+      .regex(/^\d+$/, "Saisissez un nombre de tranches entier.")
+
+      .transform(Number)
+
+      .pipe(
+        z
+
+          .number()
+
+          .int()
+
+          .min(1, "Un plan doit comporter au moins une tranche.")
+
+          .max(12, "Un plan ne peut pas dépasser 12 tranches."),
+      ),
+  })
+  .superRefine((plan, context) => {
+    if (plan.dueDates.length !== plan.installments) {
+      context.addIssue({
+        code: "custom",
+
+        path: ["dueDates"],
+
+        message: "Ajoutez une date d’échéance pour chaque tranche.",
+      })
+    }
+
+    for (let index = 1; index < plan.dueDates.length; index += 1) {
+      if (plan.dueDates[index] <= plan.dueDates[index - 1]) {
+        context.addIssue({
+          code: "custom",
+
+          path: ["dueDates", index],
+
+          message: "Les dates d’échéance doivent suivre l’ordre chronologique.",
+        })
+      }
+    }
+  })
 
 export function createManualPaymentSchema(maximumAmount: number) {
   return z
