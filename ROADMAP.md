@@ -3,7 +3,7 @@
 > Document de cadrage des travaux restant à réaliser pour transformer la maquette en application de suivi des frais scolaires utilisable en production.
 >
 > **État du document :** préparé le 7 octobre 2026 à partir du dépôt `main`.
-> **État du produit :** maquette frontend Next.js ; aucune API, base de données, authentification réelle ni passerelle de paiement n’est actuellement branchée.
+> **État du produit :** maquette frontend Next.js avec Supabase Auth, schéma PostgreSQL initial, protections RLS et contrôle d’accès par adhésion/lien vérifié ; les API métier, les comptes autorisés de l’établissement et les données réelles restent à brancher.
 
 ## 1. Objectif et périmètre
 
@@ -49,16 +49,17 @@ Horizon doit permettre à un établissement scolaire et aux familles de gérer l
 
 ### Pas encore en place — bloque l’utilisation réelle
 
-- Aucun backend ou API métier.
-- Aucune base de données persistante.
-- Aucun vrai compte, contrôle de session ou autorisation par rôle.
-- Aucun backend configuré pour l’école cliente ; le produit cible une seule école par déploiement.
+- Aucune API métier.
+- Le schéma PostgreSQL initial et ses politiques RLS sont installés ; aucune donnée scolaire réelle n’a été créée.
+- La connexion, la récupération de mot de passe et le contrôle serveur Supabase Auth sont branchés. L’administration exige une adhésion de personnel active ; l’espace parent exige un lien parent-enfant vérifié. La base ne contient pas encore de comptes/adhésions autorisés.
+- Prisma a introspecté les entités de l’application ; Supabase Auth reste géré par Supabase et les migrations SQL demeurent la source de vérité pour les contraintes, fonctions et politiques RLS.
+- Les écrans métier restent alimentés par les mocks ; le produit cible une seule école par déploiement.
 - Aucune personnalisation persistée (identité, logo, année scolaire et paramètres métier propres à cette installation).
 - Aucun encaissement en ligne ni rapprochement de transactions avec un prestataire.
 - Aucune intégration d’envoi SMS/e-mail.
 - Aucune génération de reçu certifiée côté serveur.
 - Aucun déploiement de production, nom de domaine ou environnement de secrets documenté.
-- Les formulaires d’authentification et plusieurs écrans restent des interactions de maquette.
+- Les formulaires métier restent des interactions de maquette ; le mode démo explicite conserve les données fictives en développement.
 
 ## 3. Plan de travail
 
@@ -91,8 +92,11 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 - [x] Choisir la base de données et la cible initiale : Supabase/PostgreSQL ; Vercel pour l’application Next.js avant éventuelle migration vers VPS. : superbase  et hebergement grtuit sur vercel après vps + nom de domaine, tout le projet est en next
 - [ ] Créer les environnements `development`, `staging` et `production` ainsi que leurs bases distinctes.
 - [x] Préparer `.env.example`, les clients Supabase navigateur/serveur et le `proxy.ts` de renouvellement de session Next.js 16 ; conserver la maquette si aucune configuration Supabase n’est fournie.
+- [x] Brancher l’authentification par e-mail/mot de passe, le callback de récupération et le contrôle serveur initial sur les routes parent/administration ; le mode démo reste distinct et limité au développement.
+- [x] Ajouter Prisma 7 avec l’adaptateur PostgreSQL ; utiliser la connexion Supavisor poolée à l’exécution et une transaction serveur qui vérifie l’utilisateur Supabase puis rétablit le rôle et les claims RLS. Les migrations SQL Supabase restent la source de vérité.
 - [x] Ébaucher le schéma relationnel versionné : établissements, rôles, années/classes, familles/apprenants/inscriptions, frais/plans, factures/paiements/remboursements/reçus, audit et notifications.
-- [ ] Appliquer et tester la migration initiale sur un projet Supabase de développement ; vérifier les politiques RLS avec plusieurs rôles/familles de l’école.
+- [x] Ajouter `DATABASE_URL` et `DIRECT_URL`, appliquer et enregistrer les migrations initiales, introspecter le schéma avec Prisma et générer le client ; seul le schéma, sans fixtures métier, a été créé.
+- [x] Vérifier l’isolation RLS avec des identités et dossiers synthétiques transactionnels (direction, parent avec lien vérifié et utilisateur sans lien) ; annuler toutes les fixtures après test.
 - [ ] Définir une stratégie de persistance des données mockées et d’import initial contrôlé.
 - [x] Définir des schémas Zod réutilisables pour valider les formulaires de paiement manuel, parent, apprenant, classe et échéancier avant toute écriture.
 - [ ] Définir la validation d’entrée côté serveur et les réponses d’erreur typées.
@@ -127,14 +131,15 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 ### Phase 3 — Authentification et gestion des accès
 
 - [x] Choisir Supabase Auth et préparer les clients SSR navigateur/serveur ainsi que le renouvellement de session par Proxy.
-- [ ] Brancher les formulaires de connexion au vrai fournisseur d’identité et remplacer les mots de passe de démonstration après tests de parité.
-- [ ] Implémenter connexion réelle avec vérification d’identité ; supprimer les mots de passe de démonstration.
-- [ ] Implémenter déconnexion réelle, expiration et renouvellement de session.
+- [x] Brancher la connexion e-mail/mot de passe au fournisseur d’identité ; remplacer les mots de passe préremplis par un accès démo explicite limité au développement.
+- [x] Implémenter connexion réelle avec vérification d’identité.
+- [x] Implémenter déconnexion réelle ; le renouvellement de session est préparé par Proxy.
+- [ ] Ajouter les URL locales et de production de `/auth/callback` aux URL de redirection autorisées dans la configuration Supabase Auth.
 - [ ] Implémenter invitation/activation de compte parent et association sécurisée aux enfants.
 - [ ] Implémenter création/invitation des comptes d’administration et activation contrôlée.
-- [ ] Implémenter récupération et changement de mot de passe sans révéler l’existence d’un compte.
+- [x] Implémenter récupération et changement de mot de passe sans révéler l’existence d’un compte.
 - [ ] Si nécessaire, mettre en place vérification par SMS/e-mail/OTP, expiration et limitation des tentatives.
-- [ ] Imposer contrôle serveur de rôle et d’établissement ; ne pas se fier aux seules routes ou contrôles UI.
+- [x] Vérifier côté serveur une adhésion de personnel active ou un lien parent-enfant vérifié, dans une transaction Prisma qui transmet l’identité Supabase à RLS ; ne pas accorder l’accès sur le seul choix UI ou `app_metadata`.
 - [ ] Ajouter protection contre brute force, réutilisation de jetons, fixation de session et élévation de privilèges.
 - [ ] Valider les scénarios de compte désactivé, utilisateur supprimé, invitation expirée et accès révoqué.
 
@@ -276,7 +281,7 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 
 | Besoin | Accès/valeur à obtenir | Quand | Sensibilité |
 |---|---|---|---|
-| Base de données | Instance et chaîne de connexion (ex. `DATABASE_URL`) | Après choix du backend ; une par environnement | Secret serveur |
+| Base de données / Prisma | `DATABASE_URL` via le pooler de transaction Supavisor pour l’application et `DIRECT_URL` pour introspection/commandes Prisma ; mot de passe PostgreSQL de l’environnement | Avant le branchement des données ; une paire par environnement | Secrets serveur ; ne jamais préfixer par `NEXT_PUBLIC_` |
 | Supabase Auth | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ; `SUPABASE_SERVICE_ROLE_KEY` uniquement si une opération serveur privilégiée le nécessite | Phase 3 | Clé publishable prévue pour le navigateur ; clé service strictement serveur |
 | Authentification propriétaire, si choisie | Clé de signature des sessions (`AUTH_SECRET`) et configuration de l’URL de callback | Phase 3 | Secret serveur, aléatoire, différent par environnement |
 | E-mail transactionnel | API key, domaine d’envoi vérifié, adresses expéditeur et reply-to | Phase 6 | API key secrète |
@@ -291,23 +296,25 @@ Les cases sont à cocher au fil du développement. Les phases dépendent des dé
 
 ### Variables d’environnement indicatives
 
-Les noms exacts dépendront des choix de fournisseurs ; ce tableau est un modèle, pas une configuration à remplir avec des valeurs de production dans le dépôt.
+Configurer ces valeurs comme secrets serveur dans chaque environnement ; les formats de connexion PostgreSQL et paramètres TLS sont documentés dans `.env.example`. Ne pas ajouter de valeurs de production au dépôt.
 
 ```dotenv
-# Backend/base (choix à faire)
+# Supabase — URL et clé publishable côté navigateur
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+
+# Supabase Auth — optionnel, réservé aux opérations serveur privilégiées
+SUPABASE_SERVICE_ROLE_KEY=
+
+# PostgreSQL / Prisma — côté serveur uniquement
 DATABASE_URL=
+DIRECT_URL=
 
-# À utiliser uniquement si le fournisseur d’auth sélectionné les requiert
-AUTH_SECRET=
-AUTH_URL=
-NEXT_PUBLIC_AUTH_URL=
-NEXT_PUBLIC_AUTH_ANON_KEY=
-AUTH_SERVICE_ROLE_KEY=
-
-# Prestataire de paiement — optionnel, sandbox d’abord
-PAYMENT_API_KEY=
-PAYMENT_MERCHANT_ID=
-PAYMENT_WEBHOOK_SECRET=
+# FedaPay — credentials serveur, sandbox d’abord
+FEDAPAY_ENV=test
+FEDAPAY_SECRET_KEY=
+FEDAPAY_PUBLIC_KEY=
+FEDAPAY_WEBHOOK_SECRET=
 
 # Notifications transactionnelles
 EMAIL_API_KEY=

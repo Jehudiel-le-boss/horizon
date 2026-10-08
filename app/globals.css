@@ -311,3 +311,8 @@ body::-webkit-scrollbar-thumb:hover,
   --scrollbar-thumb-hover:#7188a5;
 }
 @media(max-width:520px){.plan-due-date-list{grid-template-columns:1fr}}
+.auth-feedback{font-size:12px;line-height:1.5;margin:0 0 14px}
+.auth-feedback.error{color:var(--red)}
+.auth-feedback.success{color:var(--green);margin-top:14px}
+.auth-box form>.btn{width:100%}
+.auth-box>.btn-secondary{width:100%;margin-top:12px}

@@ -45,7 +45,7 @@ export async function proxy(request: NextRequest) {
 
   const { error } = await supabase.auth.getClaims()
 
-  if (error) throw error
+  if (error && error.name !== "AuthSessionMissingError") throw error
 
   return response
 }

@@ -6,8 +6,11 @@ import { usePathname, useRouter } from "next/navigation"
 
 import { Bell, ChevronRight, LogOut, Menu, Moon, Sun, X } from "lucide-react"
 
+import { clearDemoAccess } from "@/app/login/actions"
 import { Icon, Logo, type IconName } from "@/components/shared/ui"
 import { CustomScrollbar } from "@/components/shared/custom-scrollbar"
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser"
+import { getSupabasePublicConfig } from "@/lib/supabase/config"
 
 import { PortalActionsContext, type PortalRole } from "./portal-context"
 
@@ -195,6 +198,25 @@ export default function PortalShell({
     useState<PaymentPlanRecord[]>(mockPaymentPlans)
 
   const [stateLoaded, setStateLoaded] = useState(false)
+
+  const [logoutError, setLogoutError] = useState("")
+
+  async function handleLogout() {
+    setLogoutError("")
+
+    try {
+      if (getSupabasePublicConfig()) {
+        const { error } = await createSupabaseBrowserClient().auth.signOut()
+        if (error) throw error
+      }
+
+      await clearDemoAccess()
+      router.push("/login")
+    } catch (error) {
+      console.error("Impossible de fermer la session.", error)
+      setLogoutError("La déconnexion a échoué. Réessayez.")
+    }
+  }
 
   useEffect(() => {
     try {
@@ -773,10 +795,15 @@ export default function PortalShell({
                 <small>Horizon • 2026-2027</small>
               </div>
             </div>
-            <button onClick={() => router.push("/login")}>
+            <button onClick={() => void handleLogout()}>
               <LogOut className="icon" />
               <span>Déconnexion</span>
             </button>
+            {logoutError && (
+              <p className="auth-feedback error" role="alert">
+                {logoutError}
+              </p>
+            )}
           </div>
         </CustomScrollbar>
         {mobileOpen && (

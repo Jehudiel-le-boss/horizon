@@ -1,0 +1,668 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["auth", "public"]
+}
+
+model School {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  singleton          Boolean              @unique @default(true)
+  name               String
+  slug               String               @unique
+  countryCode        String               @default("BJ") @map("country_code") @db.Char(2)
+  currency           String               @default("XOF") @db.Char(3)
+  timezone           String               @default("Africa/Porto-Novo")
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  academic_years     academic_years[]
+  audit_events       audit_events[]
+  fee_categories     fee_categories[]
+  guardians          guardians[]
+  notifications      notifications[]
+  receipt_counters   receipt_counters[]
+  school_classes     school_classes[]
+  school_memberships school_memberships[]
+  students           students[]
+
+  @@map("schools")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+/// Minimal reference to Supabase-managed auth.users; authentication data stays in Supabase Auth.
+model users {
+  id       String    @id @db.Uuid
+  profiles profiles?
+
+  @@schema("auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model academic_years {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id          String               @db.Uuid
+  label              String
+  starts_on          DateTime             @db.Date
+  ends_on            DateTime             @db.Date
+  status             academic_year_status @default(planned)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  schools            School               @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  enrollments        enrollments[]
+  fee_configurations fee_configurations[]
+  invoices           invoices[]
+  payment_plans      payment_plans[]
+  receipt_counters   receipt_counters?
+  receipts           receipts[]
+
+  @@unique([id, school_id])
+  @@unique([school_id, label])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model audit_events {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id   String   @db.Uuid
+  actor_id    String?  @db.Uuid
+  action      String
+  entity_type String
+  entity_id   String?  @db.Uuid
+  details     Json     @default("{}")
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  schools     School   @relation(fields: [school_id], references: [id], onUpdate: NoAction)
+
+  @@index([school_id, created_at(sort: Desc)], map: "audit_events_school_created_idx")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model enrollments {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id        String           @db.Uuid
+  student_id       String           @db.Uuid
+  academic_year_id String           @db.Uuid
+  class_id         String           @db.Uuid
+  status           admission_status @default(pending)
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime         @default(now()) @db.Timestamptz(6)
+  academic_years   academic_years   @relation(fields: [academic_year_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  school_classes   school_classes   @relation(fields: [class_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  students         students         @relation(fields: [student_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  invoices         invoices?
+
+  @@unique([id, school_id])
+  @@unique([student_id, academic_year_id])
+  @@index([school_id, academic_year_id, class_id, status], map: "enrollments_school_year_class_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fee_categories {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id          String               @db.Uuid
+  name               String
+  description        String?
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  schools            School               @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fee_configurations fee_configurations[]
+
+  @@unique([id, school_id])
+  @@unique([school_id, name])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fee_configurations {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id        String         @db.Uuid
+  academic_year_id String         @db.Uuid
+  class_id         String         @db.Uuid
+  category_id      String         @db.Uuid
+  amount           BigInt
+  currency         String         @default("XOF") @db.Char(3)
+  due_on           DateTime?      @db.Date
+  created_at       DateTime       @default(now()) @db.Timestamptz(6)
+  academic_years   academic_years @relation(fields: [academic_year_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  fee_categories   fee_categories @relation(fields: [category_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  school_classes   school_classes @relation(fields: [class_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@unique([school_id, academic_year_id, class_id, category_id])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model guardian_student_links {
+  id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id   String               @db.Uuid
+  guardian_id String               @db.Uuid
+  student_id  String               @db.Uuid
+  status      guardian_link_status @default(pending)
+  verified_by String?              @db.Uuid
+  verified_at DateTime?            @db.Timestamptz(6)
+  created_at  DateTime             @default(now()) @db.Timestamptz(6)
+  guardians   guardians            @relation(fields: [guardian_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  students    students             @relation(fields: [student_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  profiles    profiles?            @relation(fields: [verified_by], references: [id], onUpdate: NoAction)
+
+  @@unique([guardian_id, student_id])
+  @@index([student_id, status], map: "guardian_links_student_status_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model guardians {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id              String                   @db.Uuid
+  user_id                String?                  @db.Uuid
+  full_name              String
+  email                  String?
+  phone                  String?
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  guardian_student_links guardian_student_links[]
+  schools                School                   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles               profiles?                @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@index([user_id, school_id], map: "guardians_user_school_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invoices {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id        String         @db.Uuid
+  enrollment_id    String         @unique @db.Uuid
+  academic_year_id String         @db.Uuid
+  invoice_number   String
+  total_amount     BigInt
+  currency         String         @default("XOF") @db.Char(3)
+  status           invoice_status @default(issued)
+  created_by       String?        @db.Uuid
+  created_at       DateTime       @default(now()) @db.Timestamptz(6)
+  academic_years   academic_years @relation(fields: [academic_year_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  profiles         profiles?      @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  enrollments      enrollments    @relation(fields: [enrollment_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  payments         payments[]
+
+  @@unique([id, school_id])
+  @@unique([enrollment_id, school_id], map: "invoices_enrollment_school_unique")
+  @@unique([school_id, invoice_number])
+  @@index([school_id, created_at(sort: Desc)], map: "invoices_school_created_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notification_deliveries {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id          String               @db.Uuid
+  notification_id    String               @db.Uuid
+  user_id            String               @db.Uuid
+  channel            notification_channel
+  status             String               @default("queued")
+  provider_reference String?
+  error_message      String?
+  sent_at            DateTime?            @db.Timestamptz(6)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  notifications      notifications        @relation(fields: [notification_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  profiles           profiles             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notification_recipients {
+  notification_id String        @db.Uuid
+  school_id       String        @db.Uuid
+  user_id         String        @db.Uuid
+  read_at         DateTime?     @db.Timestamptz(6)
+  notifications   notifications @relation(fields: [notification_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  profiles        profiles      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([notification_id, user_id])
+  @@index([user_id, read_at], map: "notification_recipients_user_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notifications {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id               String                    @db.Uuid
+  title                   String
+  body                    String
+  created_by              String?                   @db.Uuid
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  notification_deliveries notification_deliveries[]
+  notification_recipients notification_recipients[]
+  profiles                profiles?                 @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  schools                 School                    @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@index([school_id, created_at(sort: Desc)], map: "notifications_school_created_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_events {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id  String   @db.Uuid
+  payment_id String   @db.Uuid
+  event_type String
+  actor_id   String?  @db.Uuid
+  details    Json     @default("{}")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  payments   payments @relation(fields: [payment_id, school_id], references: [id, school_id], onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_plan_classes {
+  school_id      String         @db.Uuid
+  plan_id        String         @db.Uuid
+  class_id       String         @db.Uuid
+  school_classes school_classes @relation(fields: [class_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+  payment_plans  payment_plans  @relation(fields: [plan_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([plan_id, class_id])
+  @@index([school_id, class_id, plan_id], map: "payment_plan_classes_class_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_plan_installments {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id       String        @db.Uuid
+  plan_id         String        @db.Uuid
+  sequence_number Int
+  label           String
+  due_on          DateTime      @db.Date
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  payment_plans   payment_plans @relation(fields: [plan_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@unique([plan_id, sequence_number])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_plans {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id                 String                      @db.Uuid
+  academic_year_id          String                      @db.Uuid
+  name                      String
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  payment_plan_classes      payment_plan_classes[]
+  payment_plan_installments payment_plan_installments[]
+  academic_years            academic_years              @relation(fields: [academic_year_id, school_id], references: [id, school_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@unique([school_id, academic_year_id, name])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payment_refunds {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id          String        @db.Uuid
+  payment_id         String        @db.Uuid
+  amount             BigInt
+  status             refund_status @default(requested)
+  reason             String
+  idempotency_key    String        @unique @db.Uuid
+  provider_reference String?
+  requested_by       String?       @db.Uuid
+  decided_by         String?       @db.Uuid
+  requested_at       DateTime      @default(now()) @db.Timestamptz(6)
+  completed_at       DateTime?     @db.Timestamptz(6)
+  payments           payments      @relation(fields: [payment_id, school_id], references: [id, school_id], onUpdate: NoAction)
+
+  @@index([payment_id, status], map: "payment_refunds_payment_status_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payments {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id          String            @db.Uuid
+  invoice_id         String            @db.Uuid
+  amount             BigInt
+  currency           String            @default("XOF") @db.Char(3)
+  method             payment_method
+  status             payment_status    @default(pending)
+  provider_reference String?
+  idempotency_key    String            @unique @db.Uuid
+  note               String?
+  created_by         String?           @db.Uuid
+  confirmed_at       DateTime?         @db.Timestamptz(6)
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  payment_events     payment_events[]
+  payment_refunds    payment_refunds[]
+  invoices           invoices          @relation(fields: [invoice_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  receipts           receipts?
+
+  @@unique([id, school_id])
+  @@unique([method, provider_reference], map: "payments_provider_reference_unique", where: raw("(provider_reference IS NOT NULL)"))
+  @@index([invoice_id, status], map: "payments_invoice_status_idx")
+  @@index([school_id, created_at(sort: Desc)], map: "payments_school_created_idx")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model profiles {
+  id                      String                    @id @db.Uuid
+  email                   String?
+  full_name               String?
+  phone                   String?
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  guardian_student_links  guardian_student_links[]
+  guardians               guardians[]
+  invoices                invoices[]
+  notification_deliveries notification_deliveries[]
+  notification_recipients notification_recipients[]
+  notifications           notifications[]
+  users                   users                     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  school_memberships      school_memberships[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model receipt_counters {
+  school_id        String         @db.Uuid
+  academic_year_id String         @db.Uuid
+  last_number      BigInt         @default(0)
+  academic_years   academic_years @relation(fields: [academic_year_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  schools          School         @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([school_id, academic_year_id])
+  @@unique([academic_year_id, school_id], map: "receipt_counters_year_school_unique")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model receipts {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id            String         @db.Uuid
+  payment_id           String         @unique @db.Uuid
+  academic_year_id     String         @db.Uuid
+  receipt_number       String
+  school_name          String
+  academic_year_label  String
+  student_name         String
+  admission_number     String
+  invoice_number       String
+  amount               BigInt
+  currency             String         @db.Char(3)
+  payment_method       payment_method
+  provider_reference   String?
+  payment_confirmed_at DateTime       @db.Timestamptz(6)
+  issued_at            DateTime       @default(now()) @db.Timestamptz(6)
+  academic_years       academic_years @relation(fields: [academic_year_id, school_id], references: [id, school_id], onUpdate: NoAction)
+  payments             payments       @relation(fields: [payment_id, school_id], references: [id, school_id], onUpdate: NoAction)
+
+  @@unique([school_id, receipt_number])
+  @@unique([payment_id, school_id], map: "receipts_payment_school_unique")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model school_classes {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id            String                 @db.Uuid
+  name                 String
+  level                String?
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  enrollments          enrollments[]
+  fee_configurations   fee_configurations[]
+  payment_plan_classes payment_plan_classes[]
+  schools              School                 @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@unique([school_id, name])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model school_memberships {
+  school_id  String            @db.Uuid
+  user_id    String            @db.Uuid
+  role       school_role
+  status     membership_status @default(invited)
+  created_at DateTime          @default(now()) @db.Timestamptz(6)
+  schools    School            @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles   profiles          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([school_id, user_id])
+  @@index([user_id, status], map: "school_memberships_user_status_idx")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model students {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id              String                   @db.Uuid
+  admission_number       String
+  full_name              String
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  enrollments            enrollments[]
+  guardian_student_links guardian_student_links[]
+  schools                School                   @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, school_id])
+  @@unique([school_id, admission_number])
+  @@schema("public")
+}
+
+enum academic_year_status {
+  planned
+  active
+  closed
+
+  @@schema("public")
+}
+
+enum admission_status {
+  pending
+  accepted
+  rejected
+  withdrawn
+
+  @@schema("public")
+}
+
+enum guardian_link_status {
+  pending
+  verified
+  rejected
+  revoked
+
+  @@schema("public")
+}
+
+enum invoice_status {
+  issued
+  settled
+  cancelled
+
+  @@schema("public")
+}
+
+enum membership_status {
+  invited
+  active
+  suspended
+
+  @@schema("public")
+}
+
+enum notification_channel {
+  in_app
+  email
+  whatsapp
+
+  @@schema("public")
+}
+
+enum payment_method {
+  cash
+  mobile_money
+  bank_transfer
+  check
+  fedapay
+  other
+
+  @@schema("public")
+}
+
+enum payment_status {
+  pending
+  confirmed
+  failed
+  cancelled
+  refund_pending
+  partially_refunded
+  refunded
+
+  @@schema("public")
+}
+
+enum refund_status {
+  requested
+  pending
+  confirmed
+  failed
+  cancelled
+
+  @@schema("public")
+}
+
+enum school_role {
+  owner
+  director
+  accountant
+  cashier
+  parent
+
+  @@schema("public")
+}
