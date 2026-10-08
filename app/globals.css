@@ -191,6 +191,12 @@
 .portal.theme-dark .plan-card.featured{border-color:var(--blue)}
 .portal.theme-dark .pagination button.active{background:var(--blue);color:#102039}
 .portal.theme-dark .table-card table,.portal.theme-dark .data-card table{color:var(--ink)}
+.portal.theme-dark .table-card th,.portal.theme-dark .data-card th{color:#aebbd0;font-size:10px}
+.portal.theme-dark .table-card td,.portal.theme-dark .data-card td{border-bottom-color:#2b394d;color:#c5d2e4;font-size:12px}
+.portal.theme-dark .table-card td b,.portal.theme-dark .data-card td b{color:#f1f5fb}
+.portal.theme-dark .table-card td code,.portal.theme-dark .data-card td code{color:#a8c5ff;font-size:11px}
+.portal.theme-dark .table-card .table-action,.portal.theme-dark .data-card .table-action{color:#a8c5ff;font-size:11px}
+.portal.theme-dark .table-card .green-text,.portal.theme-dark .data-card .green-text{color:#73e1ad}
 .portal,.portal .app-header,.portal .stat-card,.portal .card,.portal .child-card,.portal .schedule-summary,.portal .timeline-card,.portal .notification-list,.portal .receipt-card,.portal .modal,.portal .data-card,.portal .table-card,.portal .profile-summary,.portal .empty-state{transition:background-color 240ms ease,border-color 240ms ease,color 240ms ease,box-shadow 240ms ease}
 .portal aside nav button{position:relative;overflow:hidden;transition:background-color 180ms ease,color 180ms ease,transform 180ms ease}
 .portal aside nav button:before{position:absolute;inset:8px auto 8px 0;width:3px;border-radius:0 4px 4px 0;background:var(--blue);content:"";opacity:0;transform:scaleY(.4);transition:opacity 180ms ease,transform 180ms ease}
